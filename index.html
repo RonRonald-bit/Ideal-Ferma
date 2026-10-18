@@ -1,0 +1,2162 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <link rel="shortcut icon" href="2_Oltin_halqali.png" type="image/x-icon">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0c1117">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Ideal Ferma — Chorva va Hujjatlar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', system-ui, sans-serif; }
+        body { background: #0c1117; color: #e2e8f0; min-height: 100vh; }
+        .glass {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .glass-hover:hover {
+            background: rgba(255,255,255,0.07);
+            border-color: rgba(34,197,94,0.35);
+        }
+        .btn-g {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #fff;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 8px 14px;
+            font-size: 13px;
+        }
+        .btn-g:hover { filter: brightness(1.08); }
+        .btn-green {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+        .btn-green:hover { filter: brightness(1.08); }
+        .nav-btn {
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #94a3b8;
+            border: 1px solid transparent;
+        }
+        .nav-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
+        .nav-btn.active {
+            color: #4ade80;
+            background: rgba(34,197,94,0.15);
+            border-color: rgba(34,197,94,0.35);
+        }
+        .view { display: none; }
+        .view.active { display: block; }
+        .menu-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+        .menu-card:hover {
+            border-color: rgba(34,197,94,0.45);
+            background: rgba(34,197,94,0.08);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+        }
+        /* Sheet */
+        .sheet-wrap {
+            overflow: auto;
+            max-height: calc(100vh - 260px);
+            scrollbar-width: thin;
+            scrollbar-color: #1e3a2f #0c1117;
+        }
+        .sheet-wrap::-webkit-scrollbar { width: 10px; height: 10px; }
+        .sheet-wrap::-webkit-scrollbar-track { background: #0c1117; border-radius: 6px; }
+        .sheet-wrap::-webkit-scrollbar-thumb {
+            background: #1e3a2f; border-radius: 6px; border: 2px solid #0c1117;
+        }
+        .sheet-wrap::-webkit-scrollbar-thumb:hover { background: #22c55e; }
+        .sheet-wrap::-webkit-scrollbar-corner { background: #0c1117; }
+        table.sheet {
+            border-collapse: collapse;
+            min-width: 2100px;
+            width: 100%;
+            font-size: 13px;
+        }
+        table.sheet th {
+            position: sticky; top: 0; z-index: 10;
+            background: #1a2332; color: #94a3b8;
+            font-weight: 700; font-size: 11px;
+            text-transform: uppercase; letter-spacing: 0.04em;
+            padding: 10px; border: 1px solid rgba(255,255,255,0.08);
+            white-space: nowrap; text-align: left;
+        }
+        table.sheet td {
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 0; background: #121a24; white-space: nowrap;
+        }
+        table.sheet tr:hover td { background: #162030; }
+        table.sheet tr.selected td { background: #1a3a2a !important; }
+        table.sheet input, table.sheet select {
+            width: 100%; min-width: 0; background: transparent;
+            border: none; color: #f1f5f9; padding: 8px 10px;
+            font-size: 13px; outline: none; white-space: nowrap;
+        }
+        table.sheet select {
+            cursor: pointer; appearance: auto;
+            -webkit-appearance: menulist;
+            min-width: 110px; padding-right: 22px;
+        }
+        table.sheet select.col-wide { min-width: 140px; }
+        table.sheet select.col-xwide { min-width: 150px; }
+        table.sheet input:focus, table.sheet select:focus {
+            background: rgba(34,197,94,0.12);
+            box-shadow: inset 0 0 0 1px #22c55e;
+        }
+        table.sheet .row-num {
+            width: 44px; min-width: 44px; text-align: center;
+            color: #64748b; font-size: 11px; font-weight: 600;
+            background: #0f1720 !important; user-select: none;
+        }
+        table.sheet th.w-tur, table.sheet td.w-tur { min-width: 120px; }
+        table.sheet th.w-jins, table.sheet td.w-jins { min-width: 120px; }
+        table.sheet th.w-holat, table.sheet td.w-holat { min-width: 130px; }
+        table.sheet th.w-kelish, table.sheet td.w-kelish { min-width: 155px; }
+        table.sheet th.w-egizak, table.sheet td.w-egizak { min-width: 130px; }
+        table.sheet th.w-zot, table.sheet td.w-zot { min-width: 110px; }
+        table.sheet th.w-birka, table.sheet td.w-birka { min-width: 100px; }
+        table.sheet th.w-sabab, table.sheet td.w-sabab { min-width: 160px; }
+        .stat-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 14px; padding: 14px 16px;
+        }
+        select option { background: #1e293b; color: #fff; }
+        .filter-chip {
+            padding: 6px 12px; border-radius: 999px; font-size: 12px;
+            font-weight: 600; border: 1px solid rgba(255,255,255,0.1);
+            background: transparent; color: #94a3b8; cursor: pointer;
+        }
+        .filter-chip.active {
+            background: rgba(34,197,94,0.2);
+            border-color: #22c55e; color: #4ade80;
+        }
+        .role-chip {
+            padding: 7px 14px; border-radius: 10px; font-size: 12px;
+            font-weight: 700; border: 1px solid rgba(255,255,255,0.1);
+            background: transparent; color: #94a3b8; cursor: pointer;
+        }
+        .role-chip.active {
+            background: rgba(56,189,248,0.18);
+            border-color: #38bdf8; color: #7dd3fc;
+        }
+        .role-chip.active-ona {
+            background: rgba(251,191,36,0.18);
+            border-color: #fbbf24; color: #fcd34d;
+        }
+        .role-chip.active-bola {
+            background: rgba(167,139,250,0.18);
+            border-color: #a78bfa; color: #c4b5fd;
+        }
+        table.sheet tr.row-ona td { background: #1a2418; }
+        table.sheet tr.row-bola td { background: #181828; }
+        table.sheet tr.row-ona:hover td { background: #1f2e1c; }
+        table.sheet tr.row-bola:hover td { background: #1e1e35; }
+        .toast {
+            position: fixed; bottom: 24px; right: 24px;
+            background: #166534; color: #fff;
+            padding: 12px 18px; border-radius: 12px;
+            font-size: 13px; font-weight: 600; z-index: 100;
+            opacity: 0; transform: translateY(12px); transition: all 0.3s;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        #acBox {
+            position: fixed; z-index: 200;
+            min-width: 160px; max-width: 280px; max-height: 220px;
+            overflow-y: auto; background: #1e293b;
+            border: 1px solid rgba(34,197,94,0.45);
+            border-radius: 10px; box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+            display: none;
+        }
+        #acBox.show { display: block; }
+        #acBox div {
+            padding: 8px 12px; font-size: 13px; color: #e2e8f0;
+            cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        #acBox div:hover, #acBox div.active {
+            background: rgba(34,197,94,0.25); color: #4ade80;
+        }
+        #acBox div mark { background: transparent; color: #86efac; font-weight: 700; }
+        .modal-bg { background: rgba(0,0,0,0.65); backdrop-filter: blur(6px); }
+        .fade-in { animation: fadeIn 0.35s ease; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .cat-badge {
+            font-size: 10px; letter-spacing: 0.04em;
+            text-transform: uppercase; font-weight: 700;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #22c55e !important;
+            box-shadow: 0 0 0 3px rgba(34,197,94,0.15);
+        }
+        .scrollbar::-webkit-scrollbar { width: 6px; }
+        .scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(34,197,94,0.4); border-radius: 3px;
+        }
+
+        .login-box {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px; max-width: 440px; width: 100%;
+        }
+        .view-banner {
+            background: rgba(56,189,248,0.12);
+            border: 1px solid rgba(56,189,248,0.3);
+            color: #7dd3fc; border-radius: 12px;
+            padding: 10px 14px; font-size: 13px; font-weight: 600;
+        }
+        .role-badge-edit { background: rgba(34,197,94,0.2); color: #4ade80; }
+        .role-badge-view { background: rgba(56,189,248,0.2); color: #7dd3fc; }
+        table.sheet input:disabled, table.sheet select:disabled {
+            color: #cbd5e1; cursor: default; opacity: 0.95;
+        }
+        /* ===== RESPONSIVE (telefon / planshet) ===== */
+        input, select, textarea { font-size: 16px; }
+        table.sheet input, table.sheet select { font-size: 13px; }
+        body {
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        @media (pointer: coarse) {
+            .btn-g, .nav-btn, .filter-chip, .role-chip { min-height: 40px; }
+        }
+        @media (min-width: 641px) and (max-width: 1024px) {
+            header > div { flex-wrap: wrap; height: auto !important; padding-top: 8px; padding-bottom: 8px; }
+            .sheet-wrap { max-height: calc(100dvh - 300px); }
+        }
+        @media (max-width: 640px) {
+            header > div { height: auto !important; flex-wrap: wrap; padding: 8px 12px; row-gap: 6px; }
+            header nav {
+                order: 3; width: 100%; flex-wrap: nowrap !important; justify-content: flex-start !important;
+                overflow-x: auto; gap: 4px; padding-bottom: 4px; scrollbar-width: none;
+            }
+            header nav::-webkit-scrollbar { display: none; }
+            .nav-btn { white-space: nowrap; padding: 8px 12px; flex-shrink: 0; }
+            #view-home > div { padding-top: 28px !important; padding-bottom: 28px !important; }
+            .menu-card { padding: 18px !important; border-radius: 16px; }
+            .menu-card:hover { transform: none; }
+            .view > div { padding-left: 12px !important; padding-right: 12px !important; }
+            #search { width: 100% !important; margin-left: 0 !important; margin-top: 6px; }
+            .filter-chip, .role-chip { white-space: nowrap; flex-shrink: 0; }
+            #view-chorva .flex-wrap.items-center.gap-2.mb-4 {
+                flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none;
+            }
+            .sheet-wrap { max-height: calc(100dvh - 320px); -webkit-overflow-scrolling: touch; }
+            table.sheet { min-width: 1900px; }
+            table.sheet .row-num { position: sticky; left: 0; z-index: 5; }
+            .stat-card { padding: 10px 12px; }
+            .modal-bg > div { max-height: 92dvh; overflow-y: auto; padding: 16px !important; border-radius: 16px; }
+            .worker-card > div { flex-direction: column; }
+            .worker-card input[type="number"] { width: 100% !important; }
+            .worker-card .flex-col { width: 100%; }
+            .worker-card button { min-height: 40px; }
+            #view-oylik .min-w-\[120px\], #view-oylik .min-w-\[140px\], #view-oylik .min-w-\[100px\],
+            #view-yem .min-w-\[120px\], #view-yem .min-w-\[140px\], #view-yem .min-w-\[160px\] {
+                min-width: calc(50% - 8px); flex: 1;
+            }
+            .toast { left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); text-align: center; }
+            .login-box { padding: 20px !important; border-radius: 18px; }
+        }
+        @media (max-width: 380px) {
+            .nav-btn { font-size: 12px; padding: 7px 10px; }
+            h1 { font-size: 1.5rem !important; }
+        }
+    </style></head>
+<body class="antialiased">
+
+<!-- LOGIN -->
+<div id="screen-login" class="min-h-screen flex items-center justify-center p-4">
+    <div class="login-box p-8 shadow-2xl">
+        <div class="text-center mb-6">
+            <div class="inline-flex w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-700 items-center justify-center text-3xl mb-4">🌾</div>
+            <h1 class="text-2xl font-extrabold text-white">Ideal Ferma</h1>
+            <p class="text-slate-400 text-sm mt-1">Tahrirlovchi yozadi · kuzatuvchi ko‘radi</p>
+        </div>
+        <div class="flex gap-2 mb-6">
+            <button type="button" id="tab-login" onclick="setAuthTab('login')" class="flex-1 py-2.5 rounded-xl text-sm font-bold bg-green-500/20 text-green-400 border border-green-500/30">Kirish</button>
+            <button type="button" id="tab-reg" onclick="setAuthTab('reg')" class="flex-1 py-2.5 rounded-xl text-sm font-bold text-slate-400 border border-white/10">Ro‘yxat</button>
+        </div>
+        <form id="form-login" class="space-y-4" onsubmit="return doLogin(event)">
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-1.5">Login</label>
+                <input id="loginUser" required class="w-full glass rounded-xl px-4 py-3.5 text-base text-white border border-white/10">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-1.5">Parol</label>
+                <input id="loginPass" type="password" required class="w-full glass rounded-xl px-4 py-3.5 text-base text-white border border-white/10">
+            </div>
+            <p id="loginErr" class="text-red-400 text-sm hidden"></p>
+            <button type="submit" class="btn-g w-full py-3.5 text-base">Kirish</button>
+        </form>
+        <form id="form-reg" class="space-y-4 hidden" onsubmit="return doRegister(event)">
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-1.5">Login *</label>
+                <input id="regUser" required class="w-full glass rounded-xl px-4 py-3.5 text-base text-white border border-white/10" placeholder="ali">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-1.5">Ism / ferma</label>
+                <input id="regName" class="w-full glass rounded-xl px-4 py-3.5 text-base text-white border border-white/10">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-1.5">Rol *</label>
+                <select id="regRole" onchange="onRoleChange()" class="w-full glass rounded-xl px-4 py-3.5 text-base text-white border border-white/10">
+                    <option value="editor">✏️ Tahrirlovchi</option>
+                    <option value="viewer">👁 Kuzatuvchi</option>
+                </select>
+            </div>
+            <div id="regWatchWrap" class="hidden">
+                <label class="block text-sm font-semibold text-slate-300 mb-1.5">Tahrirlovchi login *</label>
+                <input id="regWatch" class="w-full glass rounded-xl px-4 py-3.5 text-base text-white border border-white/10" placeholder="ali">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-1.5">Parol * (min 4)</label>
+                <input id="regPass" type="password" required minlength="4" class="w-full glass rounded-xl px-4 py-3.5 text-base text-white border border-white/10">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-1.5">Parol takror *</label>
+                <input id="regPass2" type="password" required minlength="4" class="w-full glass rounded-xl px-4 py-3.5 text-base text-white border border-white/10">
+            </div>
+            <p id="regErr" class="text-red-400 text-sm hidden"></p>
+            <button type="submit" class="btn-g w-full py-3.5 text-base">Ro‘yxatdan o‘tish</button>
+        </form>
+    </div>
+</div>
+<!-- APP -->
+<div id="screen-app" class="hidden">
+
+
+<!-- Header -->
+<header class="sticky top-0 z-40 border-b border-white/5 bg-[#0c1117]/95 backdrop-blur">
+    <div class="max-w-[1400px] mx-auto px-4 h-14 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+            <button onclick="showView('home')" class="w-9 h-9 rounded-lg bg-gradient-to-br from-green-500 to-emerald-700 flex items-center justify-center text-lg hover:opacity-90">🌾</button>
+            <div>
+                <div class="font-extrabold text-white text-sm leading-tight">Ideal Ferma</div>
+                <div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Barcha bo‘limlar</div>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 min-w-0">
+            <span id="roleBadge" class="text-[10px] font-bold px-2 py-1 rounded-full"></span>
+            <span id="hdrUser" class="text-[10px] text-slate-500 truncate max-w-[100px]"></span>
+        </div>
+        <nav class="flex items-center gap-1 flex-wrap justify-end">
+            <button class="nav-btn active" id="nav-home" onclick="showView('home')">Menyu</button>
+            <button class="nav-btn" id="nav-chorva" onclick="showView('chorva')">🐄 Chorva</button>
+            <button class="nav-btn editor-only" id="nav-hujjat" onclick="showView('hujjat')">📁 Hujjatlar</button>
+            <button class="nav-btn editor-only" id="nav-oylik" onclick="showView('oylik')">💰 Oylik</button>
+            <button class="nav-btn editor-only" id="nav-yem" onclick="showView('yem')">🌾 Yem</button>
+            <button class="nav-btn editor-only" id="nav-jamoa" onclick="showView('jamoa')">👥 Jamoa</button>
+            <button class="nav-btn text-red-400" onclick="doLogout()">Chiqish</button>
+        </nav>
+    </div>
+</header>
+
+<!-- ========== HOME ========== -->
+<div id="view-home" class="view active">
+    <div class="max-w-3xl mx-auto px-4 py-16 sm:py-20">
+        <div class="text-center mb-12">
+            <div class="inline-flex w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-700 items-center justify-center text-3xl mb-5 shadow-lg shadow-green-500/25">🌾</div>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Ideal Ferma boshqaruvi</h1>
+            <p class="text-slate-400 mt-2 text-sm">Kerakli bo‘limni tanlang</p>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-5">
+            <div class="menu-card p-7" onclick="showView('chorva')">
+                <div class="text-4xl mb-4">🐄</div>
+                <h2 class="text-xl font-bold text-white mb-2">Chorva mollari</h2>
+                <p class="text-sm text-slate-400 leading-relaxed">Sigir, qo‘y, buzoq — Excel jadval. Olish, so‘yish, bola, egizak.</p>
+                <span class="inline-block mt-5 text-green-400 text-sm font-semibold">Ochish →</span>
+            </div>
+            <div class="menu-card p-7 editor-only" onclick="showView('hujjat')">
+                <div class="text-4xl mb-4">📁</div>
+                <h2 class="text-xl font-bold text-white mb-2">Hujjatlar</h2>
+                <p class="text-sm text-slate-400 leading-relaxed">Yer, shartnoma, litsenziya — saqlash, qidirish, yuklab olish.</p>
+                <span class="inline-block mt-5 text-green-400 text-sm font-semibold">Ochish →</span>
+            </div>
+            <div class="menu-card p-7 editor-only" onclick="showView('oylik')">
+                <div class="text-4xl mb-4">💰</div>
+                <h2 class="text-xl font-bold text-white mb-2">Ishchilar oyligi</h2>
+                <p class="text-sm text-slate-400 leading-relaxed">Oylik hisob, to‘lov, statistika.</p>
+                <span class="inline-block mt-5 text-green-400 text-sm font-semibold">Ochish →</span>
+            </div>
+            <div class="menu-card p-7 editor-only" onclick="showView('yem')">
+                <div class="text-4xl mb-4">🌾</div>
+                <h2 class="text-xl font-bold text-white mb-2">Yemlar rasxodi</h2>
+                <p class="text-sm text-slate-400 leading-relaxed">Yem xarajati, kg, narx, sana — kunlik hisob.</p>
+                <span class="inline-block mt-5 text-green-400 text-sm font-semibold">Ochish →</span>
+            </div>
+            <div class="menu-card p-7 editor-only" onclick="showView('jamoa')">
+                <div class="text-4xl mb-4">👥</div>
+                <h2 class="text-xl font-bold text-white mb-2">Jamoa</h2>
+                <p class="text-sm text-slate-400 leading-relaxed">Kuzatuvchilar, ishdan bo‘shatish, statistika.</p>
+                <span class="inline-block mt-5 text-green-400 text-sm font-semibold">Ochish →</span>
+            </div>
+        </div>
+        <div id="homeBanner" class="view-banner mt-6 text-center hidden"></div>
+        <p class="text-center text-[11px] text-slate-600 mt-12">Ma’lumotlar faqat shu brauzerda · 2026</p>
+    </div>
+</div>
+
+<!-- ========== CHORVA ========== -->
+<div id="view-chorva" class="view">
+    <div class="max-w-[1400px] mx-auto px-4 py-5">
+        <div class="flex items-center justify-between gap-3 mb-5 flex-wrap">
+            <h2 class="text-lg font-bold text-white">🐄 Chorva mollari</h2>
+            <div class="flex items-center gap-2 flex-wrap">
+                <button onclick="addRow()" class="btn-g">+ Qator qo‘shish</button>
+                <button onclick="exportCSV()" class="glass px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:text-white editor-only">CSV yuklash</button>
+                <button onclick="if(confirm('Barcha chorva ma’lumoti o‘chsinmi?')){if(canEdit()){localStorage.removeItem(chorvaKey());rows=[];persist();render();}}" class="px-3 py-2 rounded-lg text-xs font-semibold text-red-400 hover:bg-red-500/10">Tozalash</button>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-5" id="stats"></div>
+        <!-- Ona / Bola alohida -->
+        <div class="flex flex-wrap items-center gap-2 mb-3">
+            <span class="text-xs text-slate-500 font-semibold mr-1">Kim:</span>
+            <button class="role-chip active" id="role-all" onclick="setRole(this,'')">Hammasi</button>
+            <button class="role-chip" id="role-ona" onclick="setRole(this,'ona')">🟡 Faqat onalar</button>
+            <button class="role-chip" id="role-bola" onclick="setRole(this,'bola')">🟣 Faqat bolalar</button>
+            <button class="role-chip" id="role-egizak" onclick="setRole(this,'egizak')">Egizaklar</button>
+            <input id="search" type="text" placeholder="Qidirish..." oninput="render()"
+                class="ml-auto glass rounded-lg px-3 py-1.5 text-xs text-white border border-white/10 w-40 placeholder-slate-600">
+        </div>
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+            <span class="text-xs text-slate-500 font-semibold mr-1">Tur:</span>
+            <button class="filter-chip active" data-type="" onclick="setFilter(this,'')">Hammasi</button>
+            <button class="filter-chip" data-type="Sigir" onclick="setFilter(this,'Sigir')">🐄 Sigir</button>
+            <button class="filter-chip" data-type="Buqa" onclick="setFilter(this,'Buqa')">🐂 Buqa</button>
+            <button class="filter-chip" data-type="Buzoq" onclick="setFilter(this,'Buzoq')">🐮 Buzoq</button>
+            <button class="filter-chip" data-type="Qo‘y" onclick="setFilter(this,'Qo‘y')">🐑 Qo‘y</button>
+            <button class="filter-chip" data-type="Qo‘chqor" onclick="setFilter(this,'Qo‘chqor')">🐏 Qo‘chqor</button>
+            <button class="filter-chip" data-type="Qo‘zi" onclick="setFilter(this,'Qo‘zi')">🐑 Qo‘zi</button>
+            <button class="filter-chip" data-type="Echki" onclick="setFilter(this,'Echki')">🐐 Echki</button>
+            <button class="filter-chip" data-type="Ot" onclick="setFilter(this,'Ot')">🐴 Ot</button>
+            <button class="filter-chip" data-type="Tovuq" onclick="setFilter(this,'Tovuq')">🐔 Tovuq</button>
+            <button class="filter-chip" data-type="Boshqa" onclick="setFilter(this,'Boshqa')">Boshqa</button>
+        </div>
+        <div class="glass rounded-xl overflow-hidden">
+            <div class="sheet-wrap">
+                <table class="sheet">
+                    <thead>
+                        <tr>
+                            <th class="row-num">#</th>
+                            <th class="w-birka">Birka / ID</th>
+                            <th class="w-tur">Tur</th>
+                            <th class="w-jins">Jins</th>
+                            <th class="w-zot">Zot</th>
+                            <th>Ism / nomi</th>
+                            <th>Tug‘ilgan</th>
+                            <th>Yosh</th>
+                            <th>Vazn (kg)</th>
+                            <th class="w-kelish">Qanday olingan</th>
+                            <th>Olingan sana</th>
+                            <th class="w-holat">Holat</th>
+                            <th>Chiqish sanasi</th>
+                            <th class="w-sabab">Chiqish sababi</th>
+                            <th>Ona ID</th>
+                            <th class="w-egizak">Egizak</th>
+                            <th>Bolalar</th>
+                            <th>Izoh</th>
+                            <th style="width:90px"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+            </div>
+        </div>
+        <p class="text-[11px] text-slate-600 mt-3 text-center">................................</p>
+    </div>
+</div>
+
+
+<!-- ========== OYLIK ========== -->
+<div id="view-oylik" class="view">
+    <div class="max-w-4xl mx-auto px-4 py-6">
+        <div class="flex items-center justify-between gap-3 mb-6 flex-wrap">
+            <div>
+                <h2 class="text-2xl font-extrabold text-white">💰 Ishchilar oyligi</h2>
+                <p class="text-slate-400 text-sm mt-1">Oylik hisob va to‘lovlar</p>
+            </div>
+            <button type="button" onclick="openWorkerModal()" class="btn-g editor-only">+ Ishchi qo‘shish</button>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6" id="oylikStats"></div>
+
+        <!-- ========== OYLIK SANA: YIL / OY / KUN (shu yerni o‘zgartirishingiz mumkin) ========== -->
+        <div class="glass rounded-2xl p-4 mb-5 border border-white/10">
+            <div class="text-sm font-bold text-white mb-3">📅 Sana tanlash (Yil · Oy · Kun)</div>
+            <div class="flex flex-wrap items-end gap-4">
+                <div class="min-w-[120px]">
+                    <label class="block text-xs text-slate-400 font-semibold mb-1.5" for="oylikYear">Yil</label>
+                    <select id="oylikYear" onchange="renderOylik()" class="w-full glass rounded-xl px-3 py-2.5 text-sm text-white border border-white/15">
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                    <option value="2027">2027</option>
+                    <option value="2028">2028</option>
+                    <option value="2029">2029</option>
+                    <option value="2030">2030</option>
+                    </select>
+                </div>
+                <div class="min-w-[140px]">
+                    <label class="block text-xs text-slate-400 font-semibold mb-1.5" for="oylikMonth">Oy</label>
+                    <select id="oylikMonth" onchange="renderOylik()" class="w-full glass rounded-xl px-3 py-2.5 text-sm text-white border border-white/15">
+                    <option value="1">Yanvar</option>
+                    <option value="2">Fevral</option>
+                    <option value="3">Mart</option>
+                    <option value="4">Aprel</option>
+                    <option value="5">May</option>
+                    <option value="6">Iyun</option>
+                    <option value="7">Iyul</option>
+                    <option value="8">Avgust</option>
+                    <option value="9">Sentabr</option>
+                    <option value="10">Oktabr</option>
+                    <option value="11">Noyabr</option>
+                    <option value="12">Dekabr</option>
+                    </select>
+                </div>
+                <div class="min-w-[100px]">
+                    <label class="block text-xs text-slate-400 font-semibold mb-1.5" for="oylikDay">Kun</label>
+                    <select id="oylikDay" class="w-full glass rounded-xl px-3 py-2.5 text-sm text-white border border-white/15">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                    <option value="20">20</option>
+                    <option value="21">21</option>
+                    <option value="22">22</option>
+                    <option value="23">23</option>
+                    <option value="24">24</option>
+                    <option value="25">25</option>
+                    <option value="26">26</option>
+                    <option value="27">27</option>
+                    <option value="28">28</option>
+                    <option value="29">29</option>
+                    <option value="30">30</option>
+                    <option value="31">31</option>
+                    </select>
+                </div>
+                <button type="button" onclick="generateMonthPays()" class="btn-g text-sm editor-only">Shu oy uchun yozuv yaratish</button>
+            </div>
+            <p class="text-xs text-slate-500 mt-3">Har bir oy/kun alohida saqlanadi. Ishchi ishdan ketsa ham eski oylar tarixi qoladi (nizo bo‘lmasin).</p>
+        </div>
+        <!-- ========== /OYLIK SANA ========== -->
+        <div id="oylikList" class="space-y-3"></div>
+        <p id="oylikEmpty" class="hidden text-center text-slate-400 py-12">Ishchi yo‘q</p>
+    </div>
+</div>
+
+<div id="workerModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-bg">
+    <div class="glass rounded-2xl w-full max-w-md p-6 border border-white/10">
+        <div class="flex justify-between mb-4">
+            <h2 class="text-lg font-bold text-white" id="workerModalTitle">Ishchi</h2>
+            <button type="button" onclick="closeWorkerModal()" class="text-xl text-slate-400">&times;</button>
+        </div>
+        <form onsubmit="return saveWorker(event)" class="space-y-3">
+            <input type="hidden" id="wId">
+            <input id="wName" required placeholder="Ismi *" class="w-full glass rounded-xl px-4 py-3 text-base text-white border border-white/10">
+            <input id="wJob" placeholder="Lavozim" class="w-full glass rounded-xl px-4 py-3 text-base text-white border border-white/10">
+            <input id="wSalary" type="number" required min="0" placeholder="Oylik so‘m *" class="w-full glass rounded-xl px-4 py-3 text-base text-white border border-white/10">
+            <input id="wPhone" placeholder="Telefon" class="w-full glass rounded-xl px-4 py-3 text-base text-white border border-white/10">
+            <div class="flex gap-3">
+                <button type="button" onclick="closeWorkerModal()" class="flex-1 glass rounded-xl py-3 text-sm">Bekor</button>
+                <button type="submit" class="flex-1 btn-g py-3">Saqlash</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- ========== YEM RASXODI ========== -->
+<div id="view-yem" class="view">
+    <div class="max-w-4xl mx-auto px-4 py-6">
+        <div class="flex items-center justify-between gap-3 mb-6 flex-wrap">
+            <div>
+                <h2 class="text-2xl font-extrabold text-white">🌾 Yemlar rasxodi</h2>
+                <p class="text-slate-400 text-sm mt-1">Kunlik / oylik yem xarajati</p>
+            </div>
+            <button type="button" onclick="openYemModal()" class="btn-g editor-only">+ Yem qo‘shish</button>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6" id="yemStats"></div>
+        <div class="glass rounded-2xl p-4 mb-5 border border-white/10">
+            <div class="text-sm font-bold text-white mb-3">📅 Filter (Yil · Oy)</div>
+            <div class="flex flex-wrap items-end gap-4">
+                <div class="min-w-[120px]">
+                    <label class="block text-xs text-slate-400 font-semibold mb-1.5">Yil</label>
+                    <select id="yemYear" onchange="renderYem()" class="w-full glass rounded-xl px-3 py-2.5 text-sm text-white border border-white/15"></select>
+                </div>
+                <div class="min-w-[140px]">
+                    <label class="block text-xs text-slate-400 font-semibold mb-1.5">Oy</label>
+                    <select id="yemMonth" onchange="renderYem()" class="w-full glass rounded-xl px-3 py-2.5 text-sm text-white border border-white/15"></select>
+                </div>
+                <div class="min-w-[160px]">
+                    <label class="block text-xs text-slate-400 font-semibold mb-1.5">Yem turi</label>
+                    <select id="yemFilterType" onchange="renderYem()" class="w-full glass rounded-xl px-3 py-2.5 text-sm text-white border border-white/15">
+                        <option value="">Hammasi</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div id="yemList" class="space-y-3"></div>
+        <p id="yemEmpty" class="hidden text-center text-slate-400 py-12">Yem yozuvi yo‘q. «+ Yem qo‘shish» bosing.</p>
+    </div>
+</div>
+
+<div id="yemModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-bg">
+    <div class="glass rounded-2xl w-full max-w-md p-6 border border-white/10">
+        <div class="flex justify-between mb-4">
+            <h2 class="text-lg font-bold text-white" id="yemModalTitle">Yem qo‘shish</h2>
+            <button type="button" onclick="closeYemModal()" class="text-xl text-slate-400">&times;</button>
+        </div>
+        <form onsubmit="return saveYem(event)" class="space-y-3">
+            <input type="hidden" id="yemId">
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-1">Yem turi *</label>
+                <input id="yemType" required list="yemTypeList" placeholder="Masalan: Arpa, Somon, Kombikorm..." class="w-full glass rounded-xl px-4 py-3 text-base text-white border border-white/10">
+                <datalist id="yemTypeList">
+                    <option value="Arpa"></option>
+                    <option value="Bug‘doy"></option>
+                    <option value="Makkajo‘xori"></option>
+                    <option value="Somon"></option>
+                    <option value="Pichan"></option>
+                    <option value="Kombikorm"></option>
+                    <option value="Sil"></option>
+                    <option value="Jem"></option>
+                    <option value="Tuz"></option>
+                    <option value="Boshqa"></option>
+                </datalist>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-1">Miqdor (kg) *</label>
+                    <input id="yemKg" type="number" required min="0" step="0.1" placeholder="100" class="w-full glass rounded-xl px-4 py-3 text-base text-white border border-white/10">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-1">Narx (so‘m) *</label>
+                    <input id="yemPrice" type="number" required min="0" placeholder="500000" class="w-full glass rounded-xl px-4 py-3 text-base text-white border border-white/10">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-1">Sana *</label>
+                <input id="yemDate" type="date" required class="w-full glass rounded-xl px-4 py-3 text-base text-white border border-white/10">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-1">Kimga / izoh</label>
+                <input id="yemNote" placeholder="Sigirlar, qo‘ylar..." class="w-full glass rounded-xl px-4 py-3 text-base text-white border border-white/10">
+            </div>
+            <div class="flex gap-3">
+                <button type="button" onclick="closeYemModal()" class="flex-1 glass rounded-xl py-3 text-sm">Bekor</button>
+                <button type="submit" class="flex-1 btn-g py-3">Saqlash</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========== JAMOA ========== -->
+<div id="view-jamoa" class="view">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <h2 class="text-2xl font-extrabold text-white mb-2">👥 Jamoa</h2>
+        <p class="text-slate-400 text-sm mb-6">Kuzatuvchilar boshqaruvi</p>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8" id="teamStats"></div>
+        <div id="teamList" class="space-y-3"></div>
+    </div>
+</div>
+
+<!-- ========== HUJJATLAR ========== -->
+<div id="view-hujjat" class="view">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+        <div class="flex items-center justify-between gap-3 mb-8 flex-wrap">
+            <h2 class="text-lg font-bold text-white">📁 Hujjatlar</h2>
+            <button onclick="openModal()" class="btn-green text-white text-sm font-bold px-4 py-2.5 rounded-xl shadow-lg shadow-green-500/20 flex items-center gap-2">
+                <span>+</span> Yangi hujjat
+            </button>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+            <div class="glass rounded-2xl p-4">
+                <p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Jami</p>
+                <p id="statTotal" class="text-2xl font-extrabold text-white">0</p>
+            </div>
+            <div class="glass rounded-2xl p-4">
+                <p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Kategoriyalar</p>
+                <p id="statCats" class="text-2xl font-extrabold text-green-400">0</p>
+            </div>
+            <div class="glass rounded-2xl p-4">
+                <p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Bu oy</p>
+                <p id="statMonth" class="text-2xl font-extrabold text-sky-400">0</p>
+            </div>
+            <div class="glass rounded-2xl p-4">
+                <p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Hajm</p>
+                <p id="statSize" class="text-2xl font-extrabold text-amber-400">0 KB</p>
+            </div>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3 mb-6">
+            <div class="relative flex-1">
+                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">🔍</span>
+                <input id="searchInput" type="text" placeholder="Hujjat qidirish..."
+                    class="w-full glass rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-500 border border-white/10"
+                    oninput="renderDocList()">
+            </div>
+            <select id="filterCat" onchange="renderDocList()"
+                class="glass rounded-xl px-4 py-3 text-sm text-slate-200 border border-white/10 min-w-[180px]">
+                <option value="">Barcha kategoriyalar</option>
+            </select>
+        </div>
+        <div id="docList" class="space-y-3"></div>
+        <div id="emptyState" class="hidden text-center py-20">
+            <div class="text-5xl mb-4">📁</div>
+            <h3 class="text-xl font-bold text-white mb-2">Hali hujjat yo‘q</h3>
+            <p class="text-slate-400 text-sm mb-6">Ideal Ferma hujjatlaringizni qo‘shing.</p>
+            <button onclick="openModal()" class="btn-green text-white font-bold px-6 py-3 rounded-xl">Birinchi hujjatni qo‘shish</button>
+        </div>
+    </div>
+</div>
+
+<!-- Doc Modal -->
+<div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-bg">
+    <div class="glass rounded-2xl w-full max-w-lg p-6 fade-in border border-white/10 shadow-2xl">
+        <div class="flex items-center justify-between mb-6">
+            <h2 id="modalTitle" class="text-lg font-bold text-white">Yangi hujjat</h2>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
+        </div>
+        <form id="docForm" class="space-y-4" onsubmit="saveDoc(event)">
+            <input type="hidden" id="editId">
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1.5">Hujjat nomi *</label>
+                <input id="docName" required type="text" placeholder="Masalan: Yer kadastr shahodatnomasi"
+                    class="w-full glass rounded-xl px-4 py-3 text-sm text-white border border-white/10">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">Kategoriya *</label>
+                    <select id="docCat" required class="w-full glass rounded-xl px-4 py-3 text-sm text-slate-200 border border-white/10">
+                        <option value="Yer hujjatlari">Yer hujjatlari</option>
+                        <option value="Shartnomalar">Shartnomalar</option>
+                        <option value="Litsenziyalar">Litsenziyalar</option>
+                        <option value="Hayvonlar">Hayvonlar</option>
+                        <option value="Texnika">Texnika</option>
+                        <option value="Moliya">Moliya</option>
+                        <option value="Sug‘urta">Sug‘urta</option>
+                        <option value="Boshqa">Boshqa</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">Sana</label>
+                    <input id="docDate" type="date" class="w-full glass rounded-xl px-4 py-3 text-sm text-white border border-white/10">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1.5">Izoh</label>
+                <textarea id="docNote" rows="2" placeholder="Qo‘shimcha ma’lumot..."
+                    class="w-full glass rounded-xl px-4 py-3 text-sm text-white border border-white/10 resize-none"></textarea>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1.5">Fayl (PDF, rasm, Word…)</label>
+                <input id="docFile" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp,.xls,.xlsx"
+                    class="w-full text-sm text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-green-500/20 file:text-green-400 file:font-semibold file:text-xs">
+                <p class="text-[10px] text-slate-500 mt-1.5">Maks. ~4 MB. Brauzerda saqlanadi.</p>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="closeModal()" class="flex-1 glass rounded-xl py-3 text-sm font-semibold text-slate-300">Bekor</button>
+                <button type="submit" class="flex-1 btn-green rounded-xl py-3 text-sm font-bold text-white">Saqlash</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="viewModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-bg">
+    <div class="glass rounded-2xl w-full max-w-md p-6 fade-in border border-white/10">
+        <div class="flex items-center justify-between mb-5">
+            <h2 class="text-lg font-bold text-white">Hujjat ma’lumoti</h2>
+            <button onclick="closeView()" class="text-slate-400 hover:text-white text-xl">&times;</button>
+        </div>
+        <div id="viewBody" class="space-y-3 text-sm"></div>
+        <div class="flex gap-3 mt-6">
+            <button id="viewDownload" class="flex-1 glass rounded-xl py-3 text-sm font-semibold text-sky-400 hover:bg-sky-500/10">Yuklab olish</button>
+            <button id="viewDelete" class="flex-1 glass rounded-xl py-3 text-sm font-semibold text-red-400 hover:bg-red-500/10">O‘chirish</button>
+        </div>
+    </div>
+</div>
+
+</div><!-- /screen-app -->
+<div id="toast" class="toast"></div>
+<div id="acBox"></div>
+
+<script>
+
+/* ========== AUTH / MULTI-USER (qo‘shilgan) ========== */
+const USERS_KEY = 'ferma_users_v3';
+const SESSION_KEY = 'ferma_session_v3';
+let currentUser = null;
+let currentRole = null;
+let dataOwner = null;
+function canEdit() { return currentRole === 'editor'; }
+function hash(s) {
+    let h = 0; const str = String(s);
+    for (let i = 0; i < str.length; i++) h = ((h << 5) - h) + str.charCodeAt(i) | 0;
+    return 'h' + Math.abs(h) + '_' + str.length;
+}
+function getUsers() { try { return JSON.parse(localStorage.getItem(USERS_KEY) || '{}'); } catch { return {}; } }
+function saveUsers(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
+function chorvaKey() { return 'ferma_chorva_' + (dataOwner || 'guest'); }
+function docsKey() { return 'ferma_docs_' + (dataOwner || 'guest'); }
+function yemKey() { return 'ferma_yem_' + (dataOwner || 'guest'); }
+function payrollKey() { return 'ferma_payroll_' + (dataOwner || 'guest'); }
+
+function setAuthTab(tab) {
+    document.getElementById('form-login').classList.toggle('hidden', tab !== 'login');
+    document.getElementById('form-reg').classList.toggle('hidden', tab !== 'reg');
+    document.getElementById('tab-login').className = tab === 'login'
+        ? 'flex-1 py-2.5 rounded-xl text-sm font-bold bg-green-500/20 text-green-400 border border-green-500/30'
+        : 'flex-1 py-2.5 rounded-xl text-sm font-bold text-slate-400 border border-white/10';
+    document.getElementById('tab-reg').className = tab === 'reg'
+        ? 'flex-1 py-2.5 rounded-xl text-sm font-bold bg-green-500/20 text-green-400 border border-green-500/30'
+        : 'flex-1 py-2.5 rounded-xl text-sm font-bold text-slate-400 border border-white/10';
+}
+function onRoleChange() {
+    document.getElementById('regWatchWrap').classList.toggle('hidden', document.getElementById('regRole').value !== 'viewer');
+}
+function doRegister(e) {
+    e.preventDefault();
+    const user = document.getElementById('regUser').value.trim().toLowerCase();
+    const name = document.getElementById('regName').value.trim() || user;
+    const role = document.getElementById('regRole').value;
+    const watch = document.getElementById('regWatch').value.trim().toLowerCase();
+    const pass = document.getElementById('regPass').value;
+    const pass2 = document.getElementById('regPass2').value;
+    const err = document.getElementById('regErr');
+    if (pass.length < 4) { err.textContent = 'Parol kamida 4 belgi'; err.classList.remove('hidden'); return false; }
+    if (pass !== pass2) { err.textContent = 'Parollar mos emas'; err.classList.remove('hidden'); return false; }
+    if (!/^[a-z0-9._-]{2,30}$/i.test(user)) { err.textContent = 'Login noto‘g‘ri'; err.classList.remove('hidden'); return false; }
+    const users = getUsers();
+    if (users[user]) { err.textContent = 'Login band'; err.classList.remove('hidden'); return false; }
+    if (role === 'viewer') {
+        if (!watch) { err.textContent = 'Tahrirlovchi loginini yozing'; err.classList.remove('hidden'); return false; }
+        if (!users[watch] || users[watch].role !== 'editor') {
+            err.textContent = 'Bunday tahrirlovchi yo‘q'; err.classList.remove('hidden'); return false;
+        }
+    }
+    users[user] = { pass: hash(pass), name, role, watch: role === 'viewer' ? watch : user, created: Date.now(), lastLogin: Date.now(), loginCount: 1, blocked: false };
+    saveUsers(users);
+    currentUser = user; currentRole = role; dataOwner = role === 'viewer' ? watch : user;
+    localStorage.setItem(SESSION_KEY, user);
+    if (role === 'editor') {
+        if (!localStorage.getItem(chorvaKey())) localStorage.setItem(chorvaKey(), '[]');
+        if (!localStorage.getItem(docsKey())) localStorage.setItem(docsKey(), '[]');
+    }
+    enterApp();
+    toast(role === 'editor' ? 'Tahrirlovchi yaratildi' : 'Kuzatuvchi yaratildi');
+    return false;
+}
+function doLogin(e) {
+    e.preventDefault();
+    const user = document.getElementById('loginUser').value.trim().toLowerCase();
+    const pass = document.getElementById('loginPass').value;
+    const err = document.getElementById('loginErr');
+    const users = getUsers();
+    if (!users[user] || users[user].pass !== hash(pass)) {
+        err.textContent = 'Login yoki parol noto‘g‘ri'; err.classList.remove('hidden'); return false;
+    }
+    if (users[user].blocked) {
+        err.textContent = 'Hisob yopilgan (ishdan bo‘shatilgan)'; err.classList.remove('hidden'); return false;
+    }
+    users[user].lastLogin = Date.now();
+    users[user].loginCount = (users[user].loginCount || 0) + 1;
+    saveUsers(users);
+    currentUser = user; currentRole = users[user].role || 'editor'; dataOwner = users[user].watch || user;
+    localStorage.setItem(SESSION_KEY, user);
+    enterApp(); toast('Xush kelibsiz'); return false;
+}
+function doLogout() {
+    if (!confirm('Chiqasizmi?')) return;
+    localStorage.removeItem(SESSION_KEY);
+    currentUser = null; currentRole = null; dataOwner = null; rows = [];
+    document.getElementById('screen-app').classList.add('hidden');
+    document.getElementById('screen-login').classList.remove('hidden');
+}
+function applyRoleUI() {
+    const edit = canEdit();
+    document.querySelectorAll('.editor-only').forEach(el => { el.style.display = edit ? '' : 'none'; });
+    const badge = document.getElementById('roleBadge');
+    if (badge) {
+        if (edit) { badge.textContent = '✏️ Tahrirlovchi'; badge.className = 'text-[10px] font-bold px-2 py-1 rounded-full role-badge-edit'; }
+        else { badge.textContent = '👁 Kuzatuvchi'; badge.className = 'text-[10px] font-bold px-2 py-1 rounded-full role-badge-view'; }
+    }
+    const hu = document.getElementById('hdrUser');
+    if (hu) hu.textContent = currentUser ? ('@' + currentUser) : '';
+    const hb = document.getElementById('homeBanner');
+    if (hb) {
+        if (!edit) { hb.classList.remove('hidden'); hb.textContent = '👁 Kuzatuvchi — o‘zgartira olmaysiz · @' + dataOwner; }
+        else hb.classList.add('hidden');
+    }
+}
+function enterApp() {
+    document.getElementById('screen-login').classList.add('hidden');
+    document.getElementById('screen-app').classList.remove('hidden');
+    applyRoleUI();
+    load();
+    renderDocList();
+    showView('home');
+}
+
+
+/* ========== NAV ========== */
+function showView(name) {
+    ['home','chorva','hujjat','oylik','yem','jamoa'].forEach(v => {
+        const el = document.getElementById('view-' + v);
+        if (el) el.classList.toggle('active', v === name);
+        const n = document.getElementById('nav-' + v);
+        if (n) n.classList.toggle('active', v === name);
+    });
+    if (name === 'chorva') render();
+    if (name === 'hujjat') {
+        if (!canEdit()) { toast('Kuzatuvchi hujjatlarni ko‘ra olmaydi'); showView('home'); return; }
+        renderDocList();
+    }
+    if (name === 'oylik') {
+        if (!canEdit()) { toast('Kuzatuvchi oylikni ko‘ra olmaydi'); showView('home'); return; }
+        renderOylik();
+    }
+    if (name === 'yem') {
+        if (!canEdit()) { toast('Kuzatuvchi yemni ko‘ra olmaydi'); showView('home'); return; }
+        renderYem();
+    }
+    if (name === 'jamoa') {
+        if (!canEdit()) { toast('Faqat tahrirlovchi'); showView('home'); return; }
+        renderTeam();
+    }
+    window.scrollTo(0, 0);
+}
+
+/* ========== CHORVA ========== */
+const KEY = 'ferma_chorva_v1'; // legacy; actual: chorvaKey()
+const TYPES = ['Sigir','Buqa','Buzoq','Qo‘y','Qo‘chqor','Qo‘zi','Echki','Ot','Tovuq','Boshqa'];
+const GENDERS = ['Urg‘ochi','Erkak'];
+const STATUSES = ['Sog‘lom','Homilador','Kasallangan','Sotilgan','So‘yilgan','Olib ketilgan','O‘lgan','Yo‘qolgan'];
+const ORIGINS = ['Fermada tug‘ilgan','Sotib olingan','Hadya','Almashtirilgan','Boshqa'];
+const EXIT_REASONS = [
+    'Sotildi','So‘yildi — go‘sht uchun','So‘yildi — kasallik','So‘yildi — bayram',
+    'Olib ketildi','Almashtirildi','O‘ldi — kasallik','O‘ldi — baxtsiz hodisa','Yo‘qoldi','Boshqa sabab'
+];
+const TWINS = ['Yo‘q','Ha — egizak','Ha — uchlik'];
+const CHILD_TYPE = {
+    'Sigir':'Buzoq','Buqa':'Buzoq','Buzoq':'Buzoq',
+    'Qo‘y':'Qo‘zi','Qo‘chqor':'Qo‘zi','Qo‘zi':'Qo‘zi',
+    'Echki':'Echki','Ot':'Ot','Tovuq':'Tovuq','Boshqa':'Boshqa'
+};
+const BREEDS = [
+    'Golshtin','Simmental','Jersey','Angus','Hereford','Sharole','Qizil dasht','Bushuyev',
+    'Hisor','Qorako‘l','Jaydari','Merinos','Romanov','Edilboy',
+    'Murja','Zaanen','Nubiya','Tog‘ echkisi','Qoraqalpoq','Arab','Axaltekin','Don',
+    'Broyler','Loman','Rod-ayland','Leggorn','Mahalliy'
+];
+
+let rows = [];
+let filterType = '';
+let filterRole = ''; // '' | 'ona' | 'bola' | 'egizak'
+let selectedId = null;
+let acField = null, acId = null, acIndex = -1, acList = [];
+
+function uid() { return 'a_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6); }
+
+function load() {
+    try { rows = JSON.parse(localStorage.getItem(chorvaKey()) || '[]'); } catch { rows = []; }
+    if (!Array.isArray(rows)) rows = [];
+    // Namuna faqat bo'sh va tahrirlovchi birinchi marta
+    if (rows.length === 0 && canEdit() && !localStorage.getItem(chorvaKey() + '_used')) {
+        rows = [
+            { id: uid(), birka: 'S-001', tur: 'Sigir', jins: 'Urg‘ochi', zot: 'Golshtin', ism: 'Guli', tugilgan: '2021-03-15', vazn: '420', kelish: 'Sotib olingan', kelishSana: '2021-05-01', holat: 'Sog‘lom', chiqishSana: '', chiqishSabab: '', ona: '', egizak: 'Yo‘q', izoh: '' },
+            { id: uid(), birka: 'S-002', tur: 'Sigir', jins: 'Urg‘ochi', zot: 'Simmental', ism: 'Oydin', tugilgan: '2020-07-22', vazn: '480', kelish: 'Sotib olingan', kelishSana: '2020-09-10', holat: 'Homilador', chiqishSana: '', chiqishSabab: '', ona: '', egizak: 'Yo‘q', izoh: '' },
+            { id: uid(), birka: 'B-001', tur: 'Buzoq', jins: 'Erkak', zot: 'Golshtin', ism: '', tugilgan: '2025-11-10', vazn: '65', kelish: 'Fermada tug‘ilgan', kelishSana: '2025-11-10', holat: 'Sog‘lom', chiqishSana: '', chiqishSabab: '', ona: 'S-001', egizak: 'Ha — egizak', izoh: 'Egizak 1' },
+            { id: uid(), birka: 'B-002', tur: 'Buzoq', jins: 'Urg‘ochi', zot: 'Golshtin', ism: '', tugilgan: '2025-11-10', vazn: '58', kelish: 'Fermada tug‘ilgan', kelishSana: '2025-11-10', holat: 'Sog‘lom', chiqishSana: '', chiqishSabab: '', ona: 'S-001', egizak: 'Ha — egizak', izoh: 'Egizak 2' },
+            { id: uid(), birka: 'Q-101', tur: 'Qo‘y', jins: 'Urg‘ochi', zot: 'Hisor', ism: '', tugilgan: '2023-04-01', vazn: '55', kelish: 'Sotib olingan', kelishSana: '2023-06-15', holat: 'Sog‘lom', chiqishSana: '', chiqishSabab: '', ona: '', egizak: 'Yo‘q', izoh: '' },
+        ];
+        persist();
+    }
+    render();
+}
+function persist() {
+    if (!canEdit()) { toast('Kuzatuvchi o‘zgartira olmaydi'); return; }
+    localStorage.setItem(chorvaKey(), JSON.stringify(rows));
+    localStorage.setItem(chorvaKey() + '_used', '1');
+}
+
+function calcAge(dateStr) {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr);
+    if (isNaN(d)) return '—';
+    const now = new Date();
+    let months = (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth());
+    if (now.getDate() < d.getDate()) months--;
+    if (months < 0) return '—';
+    if (months < 12) return months + ' oy';
+    const y = Math.floor(months / 12), m = months % 12;
+    return m ? `${y} y ${m} oy` : y + ' yosh';
+}
+
+function setFilter(btn, type) {
+    filterType = type;
+    document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+}
+
+function setRole(btn, role) {
+    filterRole = role;
+    document.querySelectorAll('.role-chip').forEach(b => {
+        b.classList.remove('active', 'active-ona', 'active-bola');
+    });
+    if (role === 'ona') btn.classList.add('active-ona');
+    else if (role === 'bola') btn.classList.add('active-bola');
+    else btn.classList.add('active');
+    render();
+}
+
+function isOna(r) {
+    return !!(r.birka && rows.some(x => x.ona && x.ona === r.birka));
+}
+function isBola(r) {
+    return !!(r.ona && String(r.ona).trim());
+}
+
+function getFiltered() {
+    const q = (document.getElementById('search').value || '').toLowerCase().trim();
+    let list = rows.filter(r => {
+        if (filterType && r.tur !== filterType) return false;
+        if (filterRole === 'ona' && !isOna(r)) return false;
+        if (filterRole === 'bola' && !isBola(r)) return false;
+        if (filterRole === 'egizak' && !(r.egizak && r.egizak !== 'Yo‘q')) return false;
+        if (q) {
+            const hay = [r.birka, r.ism, r.zot, r.tur, r.ona, r.izoh].join(' ').toLowerCase();
+            if (!hay.includes(q)) return false;
+        }
+        return true;
+    });
+    // Oila tartibi: ona, keyin uning bolalari
+    if (!filterRole || filterRole === '') {
+        const mothers = list.filter(r => isOna(r) || !isBola(r));
+        const children = list.filter(r => isBola(r) && !isOna(r));
+        const used = new Set();
+        const ordered = [];
+        mothers.forEach(m => {
+            ordered.push(m);
+            used.add(m.id);
+            children.filter(c => c.ona === m.birka).forEach(c => {
+                ordered.push(c);
+                used.add(c.id);
+            });
+        });
+        list.forEach(r => { if (!used.has(r.id)) ordered.push(r); });
+        return ordered;
+    }
+    return list;
+}
+
+function renderStats() {
+    const exited = ['Sotilgan','So‘yilgan','Olib ketilgan','O‘lgan','Yo‘qolgan'];
+    const active = rows.filter(r => !exited.includes(r.holat));
+    const count = t => active.filter(r => r.tur === t).length;
+    const cards = [
+        { label: 'Jami (faol)', val: active.length, color: 'text-white' },
+        { label: 'Onalar', val: active.filter(r => isOna(r)).length, color: 'text-amber-400' },
+        { label: 'Bolalar', val: active.filter(r => isBola(r)).length, color: 'text-violet-400' },
+        { label: 'Egizak', val: active.filter(r => r.egizak && r.egizak !== 'Yo‘q').length, color: 'text-sky-400' },
+        { label: 'Homilador', val: active.filter(r => r.holat === 'Homilador').length, color: 'text-pink-400' },
+        { label: 'Chiqqan', val: rows.filter(r => exited.includes(r.holat)).length, color: 'text-red-400' },
+    ];
+    document.getElementById('stats').innerHTML = cards.map(c => `
+        <div class="stat-card">
+            <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold">${c.label}</div>
+            <div class="text-2xl font-extrabold ${c.color} mt-0.5">${c.val}</div>
+        </div>`).join('');
+}
+
+function opt(list, val) {
+    return list.map(x => `<option value="${x}" ${x === val ? 'selected' : ''}>${x}</option>`).join('');
+}
+
+function uniqueField(field) {
+    const set = new Set();
+    rows.forEach(r => { const v = (r[field] || '').trim(); if (v) set.add(v); });
+    return [...set];
+}
+
+function suggestions(field, query) {
+    let base = [];
+    if (field === 'zot') base = [...BREEDS, ...uniqueField('zot')];
+    else if (field === 'birka') base = uniqueField('birka');
+    else if (field === 'ism') base = uniqueField('ism');
+    else if (field === 'ona') base = uniqueField('birka');
+    else if (field === 'izoh') base = uniqueField('izoh');
+    else if (field === 'chiqishSabab') base = [...EXIT_REASONS, ...uniqueField('chiqishSabab')];
+    else base = uniqueField(field);
+    const seen = new Set();
+    const q = (query || '').toLowerCase().trim();
+    return base.filter(v => {
+        if (seen.has(v)) return false;
+        seen.add(v);
+        return !q || v.toLowerCase().includes(q);
+    }).slice(0, 12);
+}
+
+function acShow(input, id, field) {
+    acId = id; acField = field; acIndex = -1;
+    acList = suggestions(field, input.value);
+    const box = document.getElementById('acBox');
+    if (!acList.length) { box.classList.remove('show'); return; }
+    const rect = input.getBoundingClientRect();
+    box.style.left = rect.left + 'px';
+    box.style.top = (rect.bottom + 2) + 'px';
+    box.style.minWidth = Math.max(rect.width, 160) + 'px';
+    const qLower = input.value.toLowerCase();
+    box.innerHTML = acList.map((v, i) => {
+        let label = v;
+        if (qLower && v.toLowerCase().includes(qLower)) {
+            const idx = v.toLowerCase().indexOf(qLower);
+            label = v.slice(0, idx) + '<mark>' + v.slice(idx, idx + input.value.length) + '</mark>' + v.slice(idx + input.value.length);
+        }
+        return `<div data-i="${i}" onmousedown="event.preventDefault();acPick(${i})">${label}</div>`;
+    }).join('');
+    box.classList.add('show');
+}
+function acPick(i) {
+    if (i < 0 || i >= acList.length) return;
+    upd(acId, acField, acList[i]);
+    acHide();
+    render();
+}
+function acHide() { document.getElementById('acBox').classList.remove('show'); acIndex = -1; }
+function acKey(e, input, id, field) {
+    const box = document.getElementById('acBox');
+    if (!box.classList.contains('show') || !acList.length) {
+        if (e.key === 'ArrowDown') acShow(input, id, field);
+        return;
+    }
+    if (e.key === 'ArrowDown') { e.preventDefault(); acIndex = Math.min(acIndex + 1, acList.length - 1); acHighlight(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); acIndex = Math.max(acIndex - 1, 0); acHighlight(); }
+    else if (e.key === 'Enter' && acIndex >= 0) { e.preventDefault(); acPick(acIndex); }
+    else if (e.key === 'Escape') acHide();
+    else if (e.key === 'Tab' && acIndex >= 0) { e.preventDefault(); acPick(acIndex); }
+}
+function acHighlight() {
+    const box = document.getElementById('acBox');
+    [...box.children].forEach((el, i) => el.classList.toggle('active', i === acIndex));
+    if (acIndex >= 0 && box.children[acIndex]) box.children[acIndex].scrollIntoView({ block: 'nearest' });
+}
+document.addEventListener('click', e => {
+    if (!e.target.closest('#acBox') && !e.target.matches('table.sheet input')) acHide();
+});
+function acAttr(id, field) {
+    return `oninput="acShow(this,'${id}','${field}')" onkeydown="acKey(event,this,'${id}','${field}')" onblur="setTimeout(acHide,150)" onfocus="acShow(this,'${id}','${field}')" onchange="upd('${id}','${field}',this.value)"`;
+}
+
+function render() {
+    renderStats();
+    const list = getFiltered();
+    const tb = document.getElementById('tbody');
+    if (list.length === 0) {
+        tb.innerHTML = `<tr><td colspan="19" class="text-center text-slate-500 py-12 text-sm">Ma’lumot yo‘q. «+ Qator qo‘shish» bosing.</td></tr>`;
+        return;
+    }
+    tb.innerHTML = list.map((r, i) => {
+        const bolaSoni = r.birka ? rows.filter(x => x.ona && x.ona === r.birka).length : 0;
+        const roleClass = isOna(r) ? 'row-ona' : (isBola(r) ? 'row-bola' : '');
+        const roleMark = isOna(r) ? '🟡' : (isBola(r) ? '🟣' : '');
+        return `
+        <tr data-id="${r.id}" class="${selectedId === r.id ? 'selected' : ''} ${roleClass}" onclick="selectedId='${r.id}'">
+            <td class="row-num">${roleMark}${i + 1}</td>
+            <td class="w-birka"><input value="${esc(r.birka)}" ${acAttr(r.id,'birka')} placeholder="ID" autocomplete="off"></td>
+            <td class="w-tur"><select class="col-wide" onchange="upd('${r.id}','tur',this.value)">${opt(TYPES, r.tur)}</select></td>
+            <td class="w-jins"><select class="col-wide" onchange="upd('${r.id}','jins',this.value)">${opt(GENDERS, r.jins)}</select></td>
+            <td class="w-zot"><input value="${esc(r.zot)}" ${acAttr(r.id,'zot')} placeholder="Zot" autocomplete="off"></td>
+            <td><input value="${esc(r.ism)}" ${acAttr(r.id,'ism')} placeholder="Ism" autocomplete="off"></td>
+            <td><input type="date" value="${esc(r.tugilgan)}" onchange="upd('${r.id}','tugilgan',this.value)"></td>
+            <td><input value="${calcAge(r.tugilgan)}" readonly style="color:#64748b;cursor:default"></td>
+            <td><input type="number" value="${esc(r.vazn)}" onchange="upd('${r.id}','vazn',this.value)" placeholder="0" min="0" step="0.1"></td>
+            <td class="w-kelish"><select class="col-xwide" onchange="upd('${r.id}','kelish',this.value)">${opt(ORIGINS, r.kelish || 'Sotib olingan')}</select></td>
+            <td><input type="date" value="${esc(r.kelishSana)}" onchange="upd('${r.id}','kelishSana',this.value)"></td>
+            <td class="w-holat"><select class="col-wide" onchange="upd('${r.id}','holat',this.value)">${opt(STATUSES, r.holat)}</select></td>
+            <td><input type="date" value="${esc(r.chiqishSana)}" onchange="upd('${r.id}','chiqishSana',this.value)"></td>
+            <td class="w-sabab"><input value="${esc(r.chiqishSabab)}" ${acAttr(r.id,'chiqishSabab')} placeholder="Sabab..." autocomplete="off"></td>
+            <td><input value="${esc(r.ona)}" ${acAttr(r.id,'ona')} placeholder="Ona birkasi" autocomplete="off"></td>
+            <td class="w-egizak"><select class="col-wide" onchange="upd('${r.id}','egizak',this.value)">${opt(TWINS, r.egizak || 'Yo‘q')}</select></td>
+            <td><input value="${bolaSoni}" readonly style="color:${bolaSoni ? '#4ade80' : '#64748b'};cursor:default;text-align:center;font-weight:700"></td>
+            <td><input value="${esc(r.izoh)}" ${acAttr(r.id,'izoh')} placeholder="—" autocomplete="off"></td>
+            <td style="text-align:center;padding:4px;white-space:nowrap">
+                <button onclick="event.stopPropagation();addChild('${r.id}')" class="text-green-400 hover:text-green-300 text-xs font-bold px-1.5 py-1" title="Bolasi qo‘shish">👶+</button>
+                <button onclick="event.stopPropagation();delRow('${r.id}')" class="text-red-400 hover:text-red-300 text-xs font-bold px-1.5 py-1" title="O‘chirish">✕</button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function esc(s) { return String(s ?? '').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+
+function upd(id, field, value) {
+    if (!canEdit()) return;
+    const r = rows.find(x => x.id === id);
+    if (!r) return;
+    r[field] = value;
+    persist();
+    if (field === 'tugilgan' || field === 'tur' || field === 'holat' || field === 'birka') render();
+    else toast('Saqlandi');
+}
+
+function addRow() {
+    if (!canEdit()) return;
+    const today = new Date().toISOString().slice(0, 10);
+    rows.unshift({
+        id: uid(), birka: '', tur: filterType || 'Sigir', jins: 'Urg‘ochi', zot: '', ism: '',
+        tugilgan: '', vazn: '', kelish: 'Sotib olingan', kelishSana: today, holat: 'Sog‘lom',
+        chiqishSana: '', chiqishSabab: '', ona: '', egizak: 'Yo‘q', izoh: ''
+    });
+    persist(); render(); toast('Yangi qator qo‘shildi');
+}
+
+function addChild(parentId) {
+    if (!canEdit()) return;
+    const p = rows.find(x => x.id === parentId);
+    if (!p) return;
+    if (!p.birka) { toast('Avval onaga Birka/ID yozing'); return; }
+    const today = new Date().toISOString().slice(0, 10);
+    rows.unshift({
+        id: uid(), birka: '', tur: CHILD_TYPE[p.tur] || 'Boshqa', jins: 'Urg‘ochi', zot: p.zot || '',
+        ism: '', tugilgan: today, vazn: '', kelish: 'Fermada tug‘ilgan', kelishSana: today,
+        holat: 'Sog‘lom', chiqishSana: '', chiqishSabab: '', ona: p.birka, egizak: 'Yo‘q', izoh: ''
+    });
+    persist(); render(); toast('Bola qo‘shildi → ona: ' + p.birka);
+}
+
+function delRow(id) {
+    if (!canEdit()) return;
+    if (!confirm('Bu qatorni o‘chirasizmi?')) return;
+    rows = rows.filter(r => r.id !== id);
+    persist(); render(); toast('O‘chirildi');
+}
+
+function exportCSV() {
+    if (!canEdit()) { toast('Kuzatuvchi CSV yuklay olmaydi'); return; }
+    const headers = ['Birka','Tur','Jins','Zot','Ism','Tugilgan','Yosh','Vazn_kg','Qanday_olingan','Olingan_sana','Holat','Chiqish_sanasi','Chiqish_sababi','Ona_ID','Egizak','Bolalar','Izoh'];
+    const list = getFiltered();
+    const lines = [headers.join(',')];
+    list.forEach(r => {
+        const bolaSoni = r.birka ? rows.filter(x => x.ona && x.ona === r.birka).length : 0;
+        lines.push([
+            r.birka, r.tur, r.jins, r.zot, r.ism, r.tugilgan, calcAge(r.tugilgan), r.vazn,
+            r.kelish, r.kelishSana, r.holat, r.chiqishSana, r.chiqishSabab, r.ona,
+            r.egizak || 'Yo‘q', bolaSoni, r.izoh
+        ].map(c => `"${String(c ?? '').replace(/"/g, '""')}"`).join(','));
+    });
+    const blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'ferma_chorva_' + new Date().toISOString().slice(0, 10) + '.csv';
+    a.click();
+    toast('CSV yuklandi');
+}
+
+let toastTimer;
+function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+/* ========== HUJJATLAR ========== */
+const DOC_KEY = 'ferma_hujjatlar_v1'; // legacy; use docsKey()
+const CAT_COLORS = {
+    'Yer hujjatlari': 'bg-amber-500/20 text-amber-300',
+    'Shartnomalar': 'bg-sky-500/20 text-sky-300',
+    'Litsenziyalar': 'bg-violet-500/20 text-violet-300',
+    'Hayvonlar': 'bg-orange-500/20 text-orange-300',
+    'Texnika': 'bg-slate-500/20 text-slate-300',
+    'Moliya': 'bg-emerald-500/20 text-emerald-300',
+    "Sug‘urta": 'bg-pink-500/20 text-pink-300',
+    'Boshqa': 'bg-gray-500/20 text-gray-300'
+};
+
+function loadDocs() {
+    try { return JSON.parse(localStorage.getItem(docsKey()) || '[]'); }
+    catch { return []; }
+}
+function saveDocs(docs) {
+    if (!canEdit()) { toast('Kuzatuvchi o‘zgartira olmaydi'); return; }
+    localStorage.setItem(docsKey(), JSON.stringify(docs));
+}
+
+function formatSize(bytes) {
+    if (!bytes) return '—';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(2) + ' MB';
+}
+function formatDate(d) {
+    if (!d) return '—';
+    const [y,m,day] = d.split('-');
+    return `${day}.${m}.${y}`;
+}
+
+function updateDocStats(docs) {
+    document.getElementById('statTotal').textContent = docs.length;
+    document.getElementById('statCats').textContent = new Set(docs.map(d => d.cat)).size;
+    const now = new Date();
+    document.getElementById('statMonth').textContent = docs.filter(d => {
+        if (!d.created) return false;
+        const c = new Date(d.created);
+        return c.getMonth() === now.getMonth() && c.getFullYear() === now.getFullYear();
+    }).length;
+    document.getElementById('statSize').textContent = formatSize(docs.reduce((s, d) => s + (d.fileSize || 0), 0));
+}
+
+function fillFilterOptions(docs) {
+    const sel = document.getElementById('filterCat');
+    const current = sel.value;
+    const cats = [...new Set(docs.map(d => d.cat))].sort();
+    sel.innerHTML = '<option value="">Barcha kategoriyalar</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+    sel.value = current;
+}
+
+function escapeHtml(s) {
+    const div = document.createElement('div');
+    div.textContent = s || '';
+    return div.innerHTML;
+}
+
+function renderDocList() {
+    const docs = loadDocs();
+    const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+    const cat = document.getElementById('filterCat').value;
+    let list = docs.slice().sort((a, b) => (b.created || '').localeCompare(a.created || ''));
+    if (cat) list = list.filter(d => d.cat === cat);
+    if (q) list = list.filter(d =>
+        (d.name || '').toLowerCase().includes(q) ||
+        (d.note || '').toLowerCase().includes(q) ||
+        (d.cat || '').toLowerCase().includes(q)
+    );
+    updateDocStats(docs);
+    fillFilterOptions(docs);
+    const container = document.getElementById('docList');
+    const empty = document.getElementById('emptyState');
+    if (list.length === 0) {
+        container.innerHTML = '';
+        empty.classList.remove('hidden');
+        if (docs.length > 0) {
+            empty.querySelector('h3').textContent = 'Hech narsa topilmadi';
+            empty.querySelector('p').textContent = 'Boshqa so‘z yoki kategoriya bilan qidiring.';
+            empty.querySelector('button').classList.add('hidden');
+        } else {
+            empty.querySelector('h3').textContent = 'Hali hujjat yo‘q';
+            empty.querySelector('p').textContent = 'Ferma hujjatlaringizni qo‘shing.';
+            empty.querySelector('button').classList.remove('hidden');
+        }
+        return;
+    }
+    empty.classList.add('hidden');
+    container.innerHTML = list.map(d => {
+        const badge = CAT_COLORS[d.cat] || CAT_COLORS['Boshqa'];
+        return `
+        <div class="glass glass-hover rounded-2xl p-4 flex items-start gap-4 cursor-pointer fade-in transition-all" onclick="viewDoc('${d.id}')">
+            <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-2xl flex-shrink-0">${d.fileName ? '📄' : '📝'}</div>
+            <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between gap-2">
+                    <h3 class="font-bold text-white text-sm truncate">${escapeHtml(d.name)}</h3>
+                    <span class="cat-badge px-2 py-0.5 rounded-md ${badge} flex-shrink-0">${escapeHtml(d.cat)}</span>
+                </div>
+                <p class="text-xs text-slate-500 mt-1 truncate">${d.note ? escapeHtml(d.note) : (d.fileName || 'Faylsiz yozuv')}</p>
+                <div class="flex items-center gap-3 mt-2 text-[11px] text-slate-500">
+                    <span>${formatDate(d.date)}</span>
+                    ${d.fileSize ? `<span>· ${formatSize(d.fileSize)}</span>` : ''}
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function openModal() {
+    if (!canEdit()) return;
+    document.getElementById('modal').classList.remove('hidden');
+    document.getElementById('modal').classList.add('flex');
+    document.getElementById('docForm').reset();
+    document.getElementById('editId').value = '';
+    document.getElementById('modalTitle').textContent = 'Yangi hujjat';
+    document.getElementById('docDate').value = new Date().toISOString().slice(0, 10);
+}
+function closeModal() {
+    document.getElementById('modal').classList.add('hidden');
+    document.getElementById('modal').classList.remove('flex');
+}
+
+function saveDoc(e) {
+    e.preventDefault();
+    const name = document.getElementById('docName').value.trim();
+    const cat = document.getElementById('docCat').value;
+    const date = document.getElementById('docDate').value;
+    const note = document.getElementById('docNote').value.trim();
+    const editId = document.getElementById('editId').value;
+    const file = document.getElementById('docFile').files[0];
+
+    const finish = (fileData) => {
+        const docs = loadDocs();
+        if (editId) {
+            const i = docs.findIndex(d => d.id === editId);
+            if (i >= 0) docs[i] = { ...docs[i], name, cat, date, note, ...(fileData || {}) };
+        } else {
+            docs.push({
+                id: 'd_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+                name, cat, date, note, created: new Date().toISOString(),
+                ...(fileData || {})
+            });
+        }
+        try { saveDocs(docs); } catch {
+            alert('Joy yetarli emas. Kichikroq fayl tanlang.');
+            return;
+        }
+        closeModal();
+        renderDocList();
+    };
+
+    if (file) {
+        if (file.size > 4.5 * 1024 * 1024) { alert('Fayl juda katta (~4.5 MB max).'); return; }
+        const reader = new FileReader();
+        reader.onload = () => finish({ fileName: file.name, fileType: file.type, fileSize: file.size, fileData: reader.result });
+        reader.onerror = () => alert('Faylni o‘qib bo‘lmadi.');
+        reader.readAsDataURL(file);
+    } else finish(null);
+}
+
+function viewDoc(id) {
+    const docs = loadDocs();
+    const d = docs.find(x => x.id === id);
+    if (!d) return;
+    document.getElementById('viewBody').innerHTML = `
+        <div><span class="text-slate-500 text-xs">Nomi</span><p class="font-semibold text-white">${escapeHtml(d.name)}</p></div>
+        <div><span class="text-slate-500 text-xs">Kategoriya</span><p class="text-green-400 font-medium">${escapeHtml(d.cat)}</p></div>
+        <div><span class="text-slate-500 text-xs">Sana</span><p>${formatDate(d.date)}</p></div>
+        ${d.note ? `<div><span class="text-slate-500 text-xs">Izoh</span><p class="text-slate-300">${escapeHtml(d.note)}</p></div>` : ''}
+        ${d.fileName ? `<div><span class="text-slate-500 text-xs">Fayl</span><p>${escapeHtml(d.fileName)} (${formatSize(d.fileSize)})</p></div>` : ''}
+    `;
+    const dl = document.getElementById('viewDownload');
+    if (d.fileData) {
+        dl.classList.remove('opacity-40', 'pointer-events-none');
+        dl.onclick = () => { const a = document.createElement('a'); a.href = d.fileData; a.download = d.fileName || 'hujjat'; a.click(); };
+    } else {
+        dl.classList.add('opacity-40', 'pointer-events-none');
+        dl.onclick = null;
+    }
+    document.getElementById('viewDelete').onclick = () => {
+        if (confirm('Hujjatni o‘chirasizmi?')) {
+            saveDocs(docs.filter(x => x.id !== id));
+            closeView();
+            renderDocList();
+        }
+    };
+    document.getElementById('viewModal').classList.remove('hidden');
+    document.getElementById('viewModal').classList.add('flex');
+}
+function closeView() {
+    document.getElementById('viewModal').classList.add('hidden');
+    document.getElementById('viewModal').classList.remove('flex');
+}
+
+document.getElementById('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+document.getElementById('viewModal').addEventListener('click', e => { if (e.target.id === 'viewModal') closeView(); });
+
+
+/* ========== OYLIK ========== */
+const MONTH_NAMES = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
+function loadPayroll() {
+    try {
+        const d = JSON.parse(localStorage.getItem(payrollKey()) || '{"workers":[],"pays":[]}');
+        if (!d.workers) d.workers = [];
+        if (!d.pays) d.pays = [];
+        return d;
+    } catch { return { workers: [], pays: [] }; }
+}
+function savePayroll(d) {
+    if (!canEdit()) { toast('Kuzatuvchi o‘zgartira olmaydi'); return false; }
+    try { localStorage.setItem(payrollKey(), JSON.stringify(d)); return true; }
+    catch { alert('Saqlanmadi'); return false; }
+}
+function money(n) { return (Number(n) || 0).toLocaleString('uz-UZ') + ' so‘m'; }
+let oylikDateInited = false; // har yangi sahifa ochilishida false
+function initOylikSelects() {
+    // Optionlar HTMLda (2030 gacha). Faqat BIRINCHI ochilishda bugungi sana tanlanadi.
+    const now = new Date();
+    const mSel = document.getElementById('oylikMonth');
+    const ySel = document.getElementById('oylikYear');
+    const dSel = document.getElementById('oylikDay');
+    if (!mSel) return;
+    if (ySel && ySel.options.length === 0) {
+        for (let yy = 2024; yy <= 2030; yy++) {
+            const o = document.createElement('option');
+            o.value = yy; o.textContent = yy;
+            ySel.appendChild(o);
+        }
+    }
+    if (mSel.options.length === 0) {
+        MONTH_NAMES.forEach((n, i) => {
+            const o = document.createElement('option');
+            o.value = i + 1; o.textContent = n;
+            mSel.appendChild(o);
+        });
+    }
+    if (dSel && dSel.options.length === 0) {
+        for (let dd = 1; dd <= 31; dd++) {
+            const o = document.createElement('option');
+            o.value = dd; o.textContent = dd;
+            dSel.appendChild(o);
+        }
+    }
+    if (oylikDateInited) return; // keyingi renderlarda foydalanuvchi tanlovini buzmaslik
+    oylikDateInited = true;
+    function selectOrAdd(sel, val) {
+        if (!sel) return;
+        const v = String(val);
+        let found = false;
+        for (let i = 0; i < sel.options.length; i++) {
+            if (sel.options[i].value === v) { found = true; break; }
+        }
+        if (!found) {
+            const o = document.createElement('option');
+            o.value = v; o.textContent = v;
+            sel.appendChild(o);
+        }
+        sel.value = v;
+    }
+    selectOrAdd(ySel, now.getFullYear());
+    selectOrAdd(mSel, now.getMonth() + 1);
+    selectOrAdd(dSel, now.getDate());
+}
+function advTotal(p) {
+    if (!p) return 0;
+    if (Array.isArray(p.advances)) return p.advances.reduce((s, a) => s + (Number(a.amount) || 0), 0);
+    return Number(p.advance) || 0;
+}
+function qolganSum(p) {
+    if (!p) return 0;
+    return Math.max(0, (Number(p.amount) || 0) - advTotal(p));
+}
+function workersForMonth(data, month, year) {
+    // Faol ishchilar + shu oyda yozuvi bor (ketgan) ishchilar — tarix uchun
+    const pays = data.pays.filter(p => Number(p.month) === month && Number(p.year) === year);
+    const payIds = new Set(pays.map(p => p.workerId));
+    return data.workers.filter(w => w.active !== false || payIds.has(w.id));
+}
+function updateOylikStats() {
+    const data = loadPayroll();
+    const month = Number(document.getElementById('oylikMonth').value);
+    const year = Number(document.getElementById('oylikYear').value);
+    const workers = workersForMonth(data, month, year);
+    const pays = data.pays.filter(p => Number(p.month) === month && Number(p.year) === year);
+    let jami = 0, avansJami = 0, qolganJami = 0, yozuvSoni = 0;
+    workers.forEach(w => {
+        const p = pays.find(x => x.workerId === w.id);
+        if (!p) return;
+        yozuvSoni++;
+        const amount = Number(p.amount) || 0;
+        const av = advTotal(p);
+        const q = Math.max(0, amount - av);
+        jami += amount;
+        avansJami += av;
+        if (!p.paid) qolganJami += q;
+    });
+    const oyNomi = MONTH_NAMES[month - 1] || month;
+    const el = document.getElementById('oylikStats');
+    if (!el) return;
+    el.innerHTML = [
+        { label: oyNomi + ' ' + year, val: yozuvSoni + ' yozuv', color: 'text-white', s: 1 },
+        { label: 'Jami oylik', val: money(jami), color: 'text-amber-400', s: 1 },
+        { label: 'Oldindan olingan', val: money(avansJami), color: 'text-sky-400', s: 1 },
+        { label: 'Qolgan / berilishi kerak', val: money(qolganJami), color: 'text-red-400', s: 1 },
+    ].map(c => `<div class="stat-card"><div class="text-[10px] uppercase text-slate-500 font-bold">${c.label}</div>
+        <div class="${c.s ? 'text-base' : 'text-2xl'} font-extrabold ${c.color} mt-0.5">${c.val}</div></div>`).join('');
+    const empty = document.getElementById('oylikEmpty');
+    const box = document.getElementById('oylikList');
+    const activeCount = data.workers.filter(w => w.active !== false).length;
+    if (empty && box && workers.length === 0 && activeCount === 0) {
+        box.innerHTML = '';
+        empty.textContent = 'Ishchi yo‘q. «+ Ishchi qo‘shish» bosing.';
+        empty.classList.remove('hidden');
+    }
+}
+function renderOylik() {
+    if (!currentUser) return;
+    if (!canEdit()) return;
+    const scrollY = window.scrollY || 0;
+    initOylikSelects();
+    const data = loadPayroll();
+    const month = Number(document.getElementById('oylikMonth').value);
+    const year = Number(document.getElementById('oylikYear').value);
+    const pays = data.pays.filter(p => Number(p.month) === month && Number(p.year) === year);
+    const workers = workersForMonth(data, month, year);
+    let jami = 0, avansJami = 0, qolganJami = 0, tolanganQolgan = 0, yozuvSoni = 0;
+    workers.forEach(w => {
+        const p = pays.find(x => x.workerId === w.id);
+        if (!p) return;
+        yozuvSoni++;
+        const amount = Number(p.amount) || 0;
+        const av = advTotal(p);
+        const q = Math.max(0, amount - av);
+        jami += amount;
+        avansJami += av;
+        if (p.paid) tolanganQolgan += q; else qolganJami += q;
+    });
+    const oyNomi = MONTH_NAMES[month - 1] || month;
+    document.getElementById('oylikStats').innerHTML = [
+        { label: oyNomi + ' ' + year, val: yozuvSoni + ' yozuv', color: 'text-white', s: 1 },
+        { label: 'Jami oylik', val: money(jami), color: 'text-amber-400', s: 1 },
+        { label: 'Oldindan olingan', val: money(avansJami), color: 'text-sky-400', s: 1 },
+        { label: 'Qolgan / berilishi kerak', val: money(qolganJami), color: 'text-red-400', s: 1 },
+    ].map(c => `<div class="stat-card"><div class="text-[10px] uppercase text-slate-500 font-bold">${c.label}</div>
+        <div class="${c.s ? 'text-base' : 'text-2xl'} font-extrabold ${c.color} mt-0.5">${c.val}</div></div>`).join('');
+    const box = document.getElementById('oylikList');
+    const empty = document.getElementById('oylikEmpty');
+    if (!workers.length) {
+        box.innerHTML = '';
+        empty.textContent = 'Ishchi yo‘q. «+ Ishchi qo‘shish» bosing.';
+        empty.classList.remove('hidden');
+        applyRoleUI();
+        return;
+    }
+    empty.classList.add('hidden');
+    const ro = !canEdit();
+    box.innerHTML = workers.map(w => {
+        const p = pays.find(x => x.workerId === w.id);
+        const has = !!p;
+        const amount = has ? (Number(p.amount) || 0) : (Number(w.salary) || 0);
+        const av = has ? advTotal(p) : 0;
+        const qolgan = has ? Math.max(0, amount - av) : 0;
+        const paid = has && p.paid;
+        const paidInfo = has && p.paidDate ? (' · ' + p.paidDate) : '';
+        const advList = (has && Array.isArray(p.advances) && p.advances.length)
+            ? p.advances.map((a, i) =>
+                `<div class="text-xs text-sky-300/90 flex justify-between gap-2 mt-0.5">
+                    <span>↳ ${a.date || '—'} · ${money(a.amount)}${a.note ? ' · ' + esc(a.note) : ''}</span>
+                    ${ro || paid ? '' : `<button type="button" onclick="removeAdvance('${w.id}',${i})" class="text-red-400 text-[10px]">✕</button>`}
+                </div>`).join('')
+            : '';
+        let status;
+        if (!has) status = `<span class="text-slate-500">Bu oyda yozuv yo‘q — «Shu oy uchun yozuv yaratish» bosing</span>`;
+        else if (paid) status = `<span class="text-green-400">✓ Oy yopildi — qolgan ${money(qolgan)} berildi${paidInfo}</span>`;
+        else status = `<span class="text-red-400">○ Oy oxirida beriladi: ${money(qolgan)}</span>`;
+        return `<div class="glass rounded-2xl p-4 worker-card ${paid ? 'border border-green-500/25' : (!has ? 'opacity-80' : '')}" data-worker-id="${w.id}">
+            <div class="flex flex-wrap justify-between gap-3">
+                <div class="min-w-0 flex-1">
+                    <div class="font-bold text-white text-lg">${esc(w.name)}${w.active === false ? ' <span class="text-xs font-semibold text-red-400">(ishdan ketgan' + (w.leftAt ? ' · ' + w.leftAt : '') + ')</span>' : ''}</div>
+                    <div class="text-sm text-slate-400">${esc(w.job || '—')}${w.phone ? ' · ' + esc(w.phone) : ''}</div>
+                    <div class="mt-3 space-y-1 text-sm">
+                        <div class="flex justify-between gap-4 max-w-sm"><span class="text-slate-400">Umumiy oylik</span><span class="text-amber-300 font-bold">${has ? money(amount) : '—'}</span></div>
+                        <div class="flex justify-between gap-4 max-w-sm"><span class="text-slate-400">Oldindan olingan (−)</span><span class="text-sky-400 font-bold">${has ? money(av) : '—'}</span></div>
+                        <div class="flex justify-between gap-4 max-w-sm border-t border-white/10 pt-1"><span class="text-slate-300 font-semibold">Qolgan (oy oxiri)</span><span class="text-green-400 font-extrabold">${has ? money(qolgan) : '—'}</span></div>
+                    </div>
+                    ${advList ? `<div class="mt-2 pl-1 border-l-2 border-sky-500/40">${advList}</div>` : ''}
+                    <div class="text-xs mt-2 font-semibold">${status}</div>
+                </div>
+                ${ro ? '' : `<div class="flex flex-col gap-2">
+                    ${w.active !== false && has && !paid ? `
+                    <div class="flex flex-wrap gap-2 items-center">
+                        <input type="number" id="adv_${w.id}" min="0" placeholder="Avans summa" class="glass rounded-lg px-3 py-2 text-sm text-white border border-white/10 w-32">
+                        <button type="button" onclick="addAdvance('${w.id}')" class="glass text-xs font-semibold text-sky-400 px-3 py-2 rounded-lg border border-sky-500/30">Oldindan berish</button>
+                    </div>
+                    <div class="flex flex-wrap gap-2 items-center">
+                        <input type="number" value="${amount}" onchange="setPayAmount('${w.id}', this.value)" class="glass rounded-lg px-3 py-2 text-sm text-white border border-white/10 w-32" title="Umumiy oylik">
+                        <button type="button" onclick="markPay('${w.id}', true)" class="btn-g text-xs py-2 px-3">Qolganini berish (oy oxiri)</button>
+                    </div>` : ''}
+                    ${w.active !== false && has && paid ? `<button type="button" onclick="markPay('${w.id}', false)" class="glass text-xs font-semibold text-amber-400 px-3 py-2 rounded-lg">Oy yopilishini bekor</button>` : ''}
+                    ${w.active === false ? `<div class="text-xs text-slate-500 max-w-[200px]">Eski oy yozuvi — o‘zgartirilmaydi (nizo bo‘lmasligi uchun tarix).</div>` : ''}
+                    <div class="flex flex-wrap gap-2">
+                        ${w.active === false ? `
+                        <span class="text-[10px] text-slate-500 px-2">Tarix saqlangan</span>
+                        <button type="button" onclick="purgeWorkerForever('${w.id}')" class="text-xs font-semibold text-red-500 px-2">Tarixni ham o‘chirish</button>
+                        ` : `
+                        <button type="button" onclick="openWorkerModal('${w.id}')" class="text-xs font-semibold text-sky-400 px-2">O‘zgartirish</button>
+                        <button type="button" onclick="deleteWorker('${w.id}')" class="text-xs font-semibold text-red-400 px-2">Ishdan chiqarish</button>
+                        `}
+                    </div>
+                </div>`}
+            </div>
+        </div>`;
+    }).join('');
+    applyRoleUI();
+    requestAnimationFrame(() => window.scrollTo(0, scrollY));
+}
+function generateMonthPays() {
+    if (!canEdit()) return;
+    const data = loadPayroll();
+    const month = Number(document.getElementById('oylikMonth').value);
+    const year = Number(document.getElementById('oylikYear').value);
+    let added = 0;
+    data.workers.filter(w => w.active !== false).forEach(w => {
+        if (!data.pays.some(p => p.workerId === w.id && Number(p.month) === month && Number(p.year) === year)) {
+            data.pays.push({ id: uid(), workerId: w.id, month, year, amount: Number(w.salary) || 0, advances: [], paid: false, paidDate: '' });
+            added++;
+        }
+    });
+    savePayroll(data); renderOylik(); toast(added ? added + ' yozuv' : 'Allaqachon bor');
+}
+function ensurePay(data, workerId, month, year) {
+    let p = data.pays.find(x => x.workerId === workerId && Number(x.month) === month && Number(x.year) === year);
+    if (!p) {
+        const w = data.workers.find(x => x.id === workerId);
+        p = { id: uid(), workerId, month, year, amount: Number(w && w.salary) || 0, advances: [], paid: false, paidDate: '' };
+        data.pays.push(p);
+    }
+    if (!Array.isArray(p.advances)) p.advances = [];
+    return p;
+}
+function setPayAmount(workerId, amount) {
+    if (!canEdit()) return;
+    const data = loadPayroll();
+    const month = Number(document.getElementById('oylikMonth').value);
+    const year = Number(document.getElementById('oylikYear').value);
+    const p = ensurePay(data, workerId, month, year);
+    if (p.paid) { toast('Oy yopilgan — avval bekor qiling'); return; }
+    p.amount = Number(amount) || 0;
+    savePayroll(data); renderOylik(); toast('Oylik saqlandi');
+}
+function addAdvance(workerId) {
+    if (!canEdit()) return;
+    const inp = document.getElementById('adv_' + workerId);
+    const sum = Number(inp && inp.value);
+    if (!sum || sum <= 0) { toast('Avans summasini yozing'); return; }
+    const data = loadPayroll();
+    const month = Number(document.getElementById('oylikMonth').value);
+    const year = Number(document.getElementById('oylikYear').value);
+    const p = ensurePay(data, workerId, month, year);
+    if (p.paid) { toast('Oy yopilgan'); return; }
+    const av = advTotal(p);
+    if (av + sum > (Number(p.amount) || 0)) {
+        if (!confirm('Avans oylikdan katta bo‘lishi mumkin. Davom?')) return;
+    }
+    const dayEl = document.getElementById('oylikDay');
+    const d = String((dayEl && dayEl.value) || new Date().getDate()).padStart(2, '0');
+    const m = String(month).padStart(2, '0');
+    p.advances.push({ amount: sum, date: year + '-' + m + '-' + d, note: 'Oldindan' });
+    savePayroll(data); renderOylik(); toast('Oldindan berildi: ' + money(sum));
+}
+function removeAdvance(workerId, index) {
+    if (!canEdit()) return;
+    if (!confirm('Shu avansni o‘chirasizmi?')) return;
+    const data = loadPayroll();
+    const month = Number(document.getElementById('oylikMonth').value);
+    const year = Number(document.getElementById('oylikYear').value);
+    const p = data.pays.find(x => x.workerId === workerId && Number(x.month) === month && Number(x.year) === year);
+    if (!p || !Array.isArray(p.advances)) return;
+    if (p.paid) { toast('Oy yopilgan'); return; }
+    p.advances.splice(index, 1);
+    savePayroll(data); renderOylik(); toast('Avans o‘chirildi');
+}
+function markPay(workerId, paid) {
+    if (!canEdit()) return;
+    const data = loadPayroll();
+    const month = Number(document.getElementById('oylikMonth').value);
+    const year = Number(document.getElementById('oylikYear').value);
+    const p = ensurePay(data, workerId, month, year);
+    if (paid) {
+        const q = qolganSum(p);
+        if (!confirm('Oy oxiri: qolgan ' + money(q) + ' berildimi?\n(Umumiy − oldindan = qolgan)')) return;
+        p.paid = true;
+        const dayEl = document.getElementById('oylikDay');
+        const d = String((dayEl && dayEl.value) || new Date().getDate()).padStart(2, '0');
+        const m = String(month).padStart(2, '0');
+        p.paidDate = year + '-' + m + '-' + d;
+        p.paidRemaining = q;
+    } else {
+        p.paid = false;
+        p.paidDate = '';
+        p.paidRemaining = 0;
+    }
+    savePayroll(data); renderOylik(); toast(paid ? ('Qolgan berildi · ' + p.paidDate) : 'Bekor');
+}
+function openWorkerModal(editId) {
+    if (!canEdit()) return;
+    document.getElementById('workerModal').classList.remove('hidden');
+    document.getElementById('workerModal').classList.add('flex');
+    document.getElementById('wId').value = '';
+    document.getElementById('wName').value = '';
+    document.getElementById('wJob').value = '';
+    document.getElementById('wSalary').value = '';
+    document.getElementById('wPhone').value = '';
+    document.getElementById('workerModalTitle').textContent = 'Ishchi qo‘shish';
+    if (editId) {
+        const w = loadPayroll().workers.find(x => x.id === editId);
+        if (!w) return;
+        document.getElementById('wId').value = w.id;
+        document.getElementById('wName').value = w.name || '';
+        document.getElementById('wJob').value = w.job || '';
+        document.getElementById('wSalary').value = w.salary || '';
+        document.getElementById('wPhone').value = w.phone || '';
+        document.getElementById('workerModalTitle').textContent = 'O‘zgartirish';
+    }
+}
+function closeWorkerModal() {
+    document.getElementById('workerModal').classList.add('hidden');
+    document.getElementById('workerModal').classList.remove('flex');
+}
+function saveWorker(e) {
+    e.preventDefault();
+    if (!canEdit()) return false;
+    const data = loadPayroll();
+    const id = document.getElementById('wId').value;
+    const obj = {
+        name: document.getElementById('wName').value.trim(),
+        job: document.getElementById('wJob').value.trim(),
+        salary: Number(document.getElementById('wSalary').value) || 0,
+        phone: document.getElementById('wPhone').value.trim(),
+        active: true
+    };
+    if (id) {
+        const w = data.workers.find(x => x.id === id);
+        if (w) Object.assign(w, obj);
+    } else data.workers.push({ id: uid(), ...obj, created: Date.now() });
+    savePayroll(data); closeWorkerModal(); renderOylik(); toast('Saqlandi'); return false;
+}
+function deleteWorker(id) {
+    if (!canEdit()) return;
+    if (!confirm('Ishchini ishdan chiqarasizmi?\n\nEski oylar oyliklari SAQLANADI (tarix).\nYangi oylarda bu ishchi chiqmaydi.')) return;
+    const scrollY = window.scrollY || 0;
+    const data = loadPayroll();
+    const w = data.workers.find(x => x.id === id);
+    if (w) {
+        // Soft-delete: tarixiy pays o‘chmaydi
+        w.active = false;
+        w.leftAt = new Date().toISOString().slice(0, 10);
+    }
+    // pays NI O‘CHIRMAYMIZ — eski oy/kun yozuvlari qoladi
+    savePayroll(data);
+    const card = document.querySelector('.worker-card[data-worker-id="' + id + '"]');
+    if (card) {
+        const h = card.offsetHeight;
+        card.style.overflow = 'hidden';
+        card.style.transition = 'opacity 0.2s ease, max-height 0.2s ease, margin 0.2s ease, padding 0.2s ease';
+        card.style.maxHeight = h + 'px';
+        requestAnimationFrame(() => {
+            card.style.opacity = '0';
+            card.style.maxHeight = '0px';
+            card.style.margin = '0';
+            card.style.paddingTop = '0';
+            card.style.paddingBottom = '0';
+        });
+        setTimeout(() => {
+            if (card.parentNode) card.remove();
+            updateOylikStats();
+            window.scrollTo(0, scrollY);
+        }, 220);
+    } else {
+        renderOylik();
+        requestAnimationFrame(() => window.scrollTo(0, scrollY));
+    }
+    toast('Ishdan chiqarildi · tarix saqlandi');
+}
+function purgeWorkerForever(id) {
+    // Faqat admin: ishchi + BUTUN tarixni o‘chirish
+    if (!canEdit()) return;
+    if (!confirm('DIQQAT! Bu ishchi va BARCHA oylik tarixi o‘chadi. Davom?')) return;
+    const data = loadPayroll();
+    data.workers = data.workers.filter(w => w.id !== id);
+    data.pays = data.pays.filter(p => p.workerId !== id);
+    savePayroll(data);
+    renderOylik();
+    toast('Butunlay o‘chirildi');
+}
+
+
+/* ========== YEM RASXODI ========== */
+let yemDateInited = false;
+function loadYem() {
+    try {
+        const d = JSON.parse(localStorage.getItem(yemKey()) || '[]');
+        return Array.isArray(d) ? d : [];
+    } catch { return []; }
+}
+function saveYemList(list) {
+    if (!canEdit()) { toast('Kuzatuvchi o‘zgartira olmaydi'); return false; }
+    try { localStorage.setItem(yemKey(), JSON.stringify(list)); return true; }
+    catch { alert('Saqlanmadi'); return false; }
+}
+function initYemSelects() {
+    const now = new Date();
+    const mSel = document.getElementById('yemMonth');
+    const ySel = document.getElementById('yemYear');
+    if (!mSel || !ySel) return;
+    if (!mSel.options.length) {
+        MONTH_NAMES.forEach((n, i) => {
+            const o = document.createElement('option');
+            o.value = i + 1; o.textContent = n;
+            mSel.appendChild(o);
+        });
+    }
+    if (!ySel.options.length) {
+        for (let yy = 2024; yy <= 2030; yy++) {
+            const o = document.createElement('option');
+            o.value = yy; o.textContent = yy;
+            ySel.appendChild(o);
+        }
+    }
+    if (!yemDateInited) {
+        yemDateInited = true;
+        ySel.value = String(now.getFullYear());
+        mSel.value = String(now.getMonth() + 1);
+        if (![...ySel.options].some(o => o.value === ySel.value)) {
+            const o = document.createElement('option');
+            o.value = now.getFullYear(); o.textContent = now.getFullYear();
+            ySel.appendChild(o); ySel.value = String(now.getFullYear());
+        }
+    }
+    // yem turi filter options from data
+    const ft = document.getElementById('yemFilterType');
+    if (ft) {
+        const cur = ft.value;
+        const types = [...new Set(loadYem().map(x => x.type).filter(Boolean))].sort();
+        ft.innerHTML = '<option value="">Hammasi</option>' + types.map(tp => `<option value="${esc(tp)}">${esc(tp)}</option>`).join('');
+        ft.value = cur;
+    }
+}
+function renderYem() {
+    if (!currentUser || !canEdit()) return;
+    initYemSelects();
+    const month = Number(document.getElementById('yemMonth').value);
+    const year = Number(document.getElementById('yemYear').value);
+    const typeF = (document.getElementById('yemFilterType') || {}).value || '';
+    let list = loadYem().filter(x => {
+        if (!x.date) return false;
+        const [yy, mm] = x.date.split('-').map(Number);
+        if (yy !== year || mm !== month) return false;
+        if (typeF && x.type !== typeF) return false;
+        return true;
+    }).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+    let jamiSum = 0, jamiKg = 0;
+    list.forEach(x => { jamiSum += Number(x.price) || 0; jamiKg += Number(x.kg) || 0; });
+    const oyNomi = MONTH_NAMES[month - 1] || month;
+    document.getElementById('yemStats').innerHTML = [
+        { label: oyNomi + ' ' + year, val: list.length + ' yozuv', color: 'text-white', s: 1 },
+        { label: 'Jami kg', val: jamiKg.toLocaleString('uz-UZ') + ' kg', color: 'text-sky-400', s: 1 },
+        { label: 'Jami summa', val: money(jamiSum), color: 'text-amber-400', s: 1 },
+        { label: 'O‘rtacha / kg', val: list.length && jamiKg ? money(Math.round(jamiSum / jamiKg)) : '—', color: 'text-green-400', s: 1 },
+    ].map(c => `<div class="stat-card"><div class="text-[10px] uppercase text-slate-500 font-bold">${c.label}</div>
+        <div class="${c.s ? 'text-base' : 'text-2xl'} font-extrabold ${c.color} mt-0.5">${c.val}</div></div>`).join('');
+
+    const box = document.getElementById('yemList');
+    const empty = document.getElementById('yemEmpty');
+    if (!list.length) {
+        box.innerHTML = '';
+        empty.classList.remove('hidden');
+        applyRoleUI();
+        return;
+    }
+    empty.classList.add('hidden');
+    box.innerHTML = list.map(x => `
+        <div class="glass rounded-2xl p-4">
+            <div class="flex flex-wrap justify-between gap-3">
+                <div>
+                    <div class="font-bold text-white text-lg">🌾 ${esc(x.type)}</div>
+                    <div class="text-sm text-slate-400 mt-1">${esc(x.date)} ${x.note ? '· ' + esc(x.note) : ''}</div>
+                    <div class="mt-2 flex flex-wrap gap-4 text-sm">
+                        <span class="text-sky-300 font-semibold">${Number(x.kg||0).toLocaleString('uz-UZ')} kg</span>
+                        <span class="text-amber-300 font-bold">${money(x.price)}</span>
+                        ${x.kg ? `<span class="text-slate-500 text-xs">(${money(Math.round((Number(x.price)||0)/(Number(x.kg)||1)))}/kg)</span>` : ''}
+                    </div>
+                </div>
+                <div class="flex gap-2 items-start">
+                    <button type="button" onclick="openYemModal('${x.id}')" class="text-xs font-semibold text-sky-400 px-2 py-1">O‘zgartirish</button>
+                    <button type="button" onclick="deleteYem('${x.id}')" class="text-xs font-semibold text-red-400 px-2 py-1">O‘chirish</button>
+                </div>
+            </div>
+        </div>`).join('');
+    applyRoleUI();
+}
+function openYemModal(editId) {
+    if (!canEdit()) return;
+    document.getElementById('yemModal').classList.remove('hidden');
+    document.getElementById('yemModal').classList.add('flex');
+    document.getElementById('yemId').value = '';
+    document.getElementById('yemType').value = '';
+    document.getElementById('yemKg').value = '';
+    document.getElementById('yemPrice').value = '';
+    document.getElementById('yemDate').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('yemNote').value = '';
+    document.getElementById('yemModalTitle').textContent = 'Yem qo‘shish';
+    if (editId) {
+        const x = loadYem().find(i => i.id === editId);
+        if (!x) return;
+        document.getElementById('yemId').value = x.id;
+        document.getElementById('yemType').value = x.type || '';
+        document.getElementById('yemKg').value = x.kg || '';
+        document.getElementById('yemPrice').value = x.price || '';
+        document.getElementById('yemDate').value = x.date || '';
+        document.getElementById('yemNote').value = x.note || '';
+        document.getElementById('yemModalTitle').textContent = 'Yemni o‘zgartirish';
+    }
+}
+function closeYemModal() {
+    document.getElementById('yemModal').classList.add('hidden');
+    document.getElementById('yemModal').classList.remove('flex');
+}
+function saveYem(e) {
+    e.preventDefault();
+    if (!canEdit()) return false;
+    const list = loadYem();
+    const id = document.getElementById('yemId').value;
+    const obj = {
+        type: document.getElementById('yemType').value.trim(),
+        kg: Number(document.getElementById('yemKg').value) || 0,
+        price: Number(document.getElementById('yemPrice').value) || 0,
+        date: document.getElementById('yemDate').value,
+        note: document.getElementById('yemNote').value.trim()
+    };
+    if (id) {
+        const i = list.findIndex(x => x.id === id);
+        if (i >= 0) list[i] = { ...list[i], ...obj };
+    } else {
+        list.push({ id: uid(), ...obj, created: Date.now() });
+    }
+    saveYemList(list);
+    closeYemModal();
+    // filterni yozuv oyiga moslashtirish
+    if (obj.date) {
+        const [yy, mm] = obj.date.split('-');
+        const ySel = document.getElementById('yemYear');
+        const mSel = document.getElementById('yemMonth');
+        if (ySel) ySel.value = String(Number(yy));
+        if (mSel) mSel.value = String(Number(mm));
+    }
+    renderYem();
+    toast('Yem saqlandi');
+    return false;
+}
+function deleteYem(id) {
+    if (!canEdit()) return;
+    if (!confirm('Yem yozuvini o‘chirasizmi?')) return;
+    saveYemList(loadYem().filter(x => x.id !== id));
+    renderYem();
+    toast('O‘chirildi');
+}
+document.getElementById('yemModal') && document.getElementById('yemModal').addEventListener('click', e => {
+    if (e.target.id === 'yemModal') closeYemModal();
+});
+
+/* ========== JAMOA ========== */
+function formatWhen(ts) {
+    if (!ts) return 'Hali kirmagan';
+    const d = new Date(ts);
+    const p = n => String(n).padStart(2, '0');
+    return p(d.getDate()) + '.' + p(d.getMonth() + 1) + '.' + d.getFullYear() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+function getMyViewers() {
+    const users = getUsers();
+    return Object.keys(users)
+        .filter(u => users[u].role === 'viewer' && users[u].watch === currentUser)
+        .map(u => ({ login: u, ...users[u] }))
+        .sort((a, b) => (b.lastLogin || 0) - (a.lastLogin || 0));
+}
+function renderTeam() {
+    if (!canEdit()) return;
+    const list = getMyViewers();
+    const active = list.filter(v => !v.blocked);
+    const blocked = list.filter(v => v.blocked);
+    const recent = list.filter(v => v.lastLogin && (Date.now() - v.lastLogin) < 86400000);
+    document.getElementById('teamStats').innerHTML = [
+        { label: 'Jami', val: list.length, color: 'text-white' },
+        { label: 'Faol', val: active.length, color: 'text-green-400' },
+        { label: 'Bo‘shatilgan', val: blocked.length, color: 'text-red-400' },
+        { label: 'Bugun', val: recent.length, color: 'text-sky-400' },
+    ].map(c => `<div class="stat-card"><div class="text-[10px] uppercase text-slate-500 font-bold">${c.label}</div>
+        <div class="text-2xl font-extrabold ${c.color} mt-0.5">${c.val}</div></div>`).join('');
+    const box = document.getElementById('teamList');
+    if (!list.length) {
+        box.innerHTML = `<div class="glass rounded-2xl p-8 text-center text-slate-400">Kuzatuvchi yo‘q<br><span class="text-sm">Login: <b class="text-white">@${currentUser}</b></span></div>`;
+        return;
+    }
+    box.innerHTML = list.map(v => {
+        const status = v.blocked
+            ? '<span class="text-red-400 font-bold text-xs">🚫 Bo‘shatilgan</span>'
+            : '<span class="text-green-400 font-bold text-xs">✓ Faol</span>';
+        const btns = v.blocked
+            ? `<button type="button" onclick="unblockViewer('${v.login}')" class="btn-g text-xs py-2 px-3">Qayta qo‘shish</button>
+               <button type="button" onclick="deleteViewer('${v.login}')" class="text-xs font-semibold text-red-400 px-2">To‘liq o‘chirish</button>`
+            : `<button type="button" onclick="blockViewer('${v.login}')" class="glass text-xs font-semibold text-amber-400 px-3 py-2 rounded-lg">Ishdan bo‘shatish</button>
+               <button type="button" onclick="deleteViewer('${v.login}')" class="text-xs font-semibold text-red-400 px-2">To‘liq o‘chirish</button>`;
+        return `<div class="glass rounded-2xl p-4 ${v.blocked ? 'opacity-70' : ''}">
+            <div class="flex flex-wrap justify-between gap-3">
+                <div>
+                    <div class="font-bold text-white">@${esc(v.login)}${v.name && v.name !== v.login ? ' · ' + esc(v.name) : ''}</div>
+                    <div class="text-xs text-slate-400 mt-1">${status}</div>
+                    <div class="text-xs text-slate-500 mt-2">Oxirgi: ${formatWhen(v.lastLogin)}</div>
+                    <div class="text-xs text-slate-500">Kirishlar: ${v.loginCount || 0}</div>
+                </div>
+                <div class="flex flex-wrap gap-2">${btns}</div>
+            </div>
+        </div>`;
+    }).join('');
+}
+function blockViewer(login) {
+    if (!canEdit()) return;
+    if (!confirm('@' + login + ' ni bo‘shatasizmi?')) return;
+    const users = getUsers();
+    if (!users[login] || users[login].watch !== currentUser) return;
+    users[login].blocked = true; saveUsers(users); renderTeam(); toast('Bo‘shatildi');
+}
+function unblockViewer(login) {
+    if (!canEdit()) return;
+    if (!confirm('@' + login + ' ni qayta qo‘shasizmi?')) return;
+    const users = getUsers();
+    if (!users[login] || users[login].watch !== currentUser) return;
+    users[login].blocked = false; saveUsers(users); renderTeam(); toast('Qayta qo‘shildi');
+}
+function deleteViewer(login) {
+    if (!canEdit()) return;
+    if (!confirm('@' + login + ' ni TO‘LIQ o‘chirasizmi?')) return;
+    const users = getUsers();
+    if (!users[login] || users[login].watch !== currentUser) return;
+    delete users[login]; saveUsers(users); renderTeam(); toast('O‘chirildi');
+}
+
+document.getElementById('workerModal') && document.getElementById('workerModal').addEventListener('click', e => {
+    if (e.target.id === 'workerModal') closeWorkerModal();
+});
+
+/* Sessiya: login bo‘lmasa ochilmasin */
+(function initAuth() {
+    const s = localStorage.getItem(SESSION_KEY);
+    const users = getUsers();
+    if (s && users[s] && !users[s].blocked) {
+        currentUser = s;
+        currentRole = users[s].role || 'editor';
+        dataOwner = users[s].watch || s;
+        users[s].lastLogin = Date.now();
+        saveUsers(users);
+        enterApp();
+    }
+})();
+</script>
+</body>
+</html>
