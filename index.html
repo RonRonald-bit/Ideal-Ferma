@@ -388,6 +388,7 @@
             <button class="nav-btn editor-only" id="nav-oylik" onclick="showView('oylik')">💰 Oylik</button>
             <button class="nav-btn editor-only" id="nav-yem" onclick="showView('yem')">🌾 Yem</button>
             <button class="nav-btn editor-only" id="nav-jamoa" onclick="showView('jamoa')">👥 Jamoa</button>
+            <button type="button" onclick="syncNow()" class="text-xs font-semibold text-sky-400 px-2 py-1 rounded-lg border border-sky-500/30" title="Bulut sinxron">☁</button>
             <button class="nav-btn text-red-400" onclick="doLogout()">Chiqish</button>
         </nav>
     </div>
@@ -1018,18 +1019,48 @@ async function cloudLogin(login, pass) {
     const snap = await fbDb.ref('users/' + login.toLowerCase()).once('value');
     return snap.val();
 }
+let cloudFarmListener = null;
+let cloudApplyingRemote = false; // remote yangilanganda qayta push qilmaslik
 async function cloudPullFarm(owner) {
-    if (!cloudReady || !owner) return;
-    const snap = await fbDb.ref('farms/' + owner).once('value');
-    const farm = snap.val();
+    if (!cloudReady || !owner) return false;
+    try {
+        const snap = await fbDb.ref('farms/' + owner).once('value');
+        const farm = snap.val();
+        if (!farm) return false;
+        applyFarmToLocal(owner, farm);
+        return true;
+    } catch (e) {
+        console.warn('cloudPull', e);
+        return false;
+    }
+}
+function applyFarmToLocal(owner, farm) {
     if (!farm) return;
-    if (farm.chorva != null) localStorage.setItem('ferma_chorva_' + owner, typeof farm.chorva === 'string' ? farm.chorva : JSON.stringify(farm.chorva));
-    if (farm.docs != null) localStorage.setItem('ferma_docs_' + owner, typeof farm.docs === 'string' ? farm.docs : JSON.stringify(farm.docs));
-    if (farm.yem != null) localStorage.setItem('ferma_yem_' + owner, typeof farm.yem === 'string' ? farm.yem : JSON.stringify(farm.yem));
-    if (farm.payroll != null) localStorage.setItem('ferma_payroll_' + owner, typeof farm.payroll === 'string' ? farm.payroll : JSON.stringify(farm.payroll));
+    cloudApplyingRemote = true;
+    try {
+        if (farm.chorva != null) {
+            const v = typeof farm.chorva === 'string' ? farm.chorva : JSON.stringify(farm.chorva);
+            localStorage.setItem('ferma_chorva_' + owner, v);
+            localStorage.setItem('ferma_chorva_' + owner + '_used', '1');
+        }
+        if (farm.docs != null) {
+            const v = typeof farm.docs === 'string' ? farm.docs : JSON.stringify(farm.docs);
+            localStorage.setItem('ferma_docs_' + owner, v);
+        }
+        if (farm.yem != null) {
+            const v = typeof farm.yem === 'string' ? farm.yem : JSON.stringify(farm.yem);
+            localStorage.setItem('ferma_yem_' + owner, v);
+        }
+        if (farm.payroll != null) {
+            const v = typeof farm.payroll === 'string' ? farm.payroll : JSON.stringify(farm.payroll);
+            localStorage.setItem('ferma_payroll_' + owner, v);
+        }
+    } finally {
+        setTimeout(() => { cloudApplyingRemote = false; }, 50);
+    }
 }
 function cloudPushFarm(owner) {
-    if (!cloudReady || !owner) return;
+    if (!cloudReady || !owner || cloudApplyingRemote) return;
     const pack = {
         chorva: localStorage.getItem('ferma_chorva_' + owner) || '[]',
         docs: localStorage.getItem('ferma_docs_' + owner) || '[]',
@@ -1037,13 +1068,67 @@ function cloudPushFarm(owner) {
         payroll: localStorage.getItem('ferma_payroll_' + owner) || '{"workers":[],"pays":[]}',
         updatedAt: Date.now()
     };
-    fbDb.ref('farms/' + owner).update(pack).catch(e => console.warn(e));
+    fbDb.ref('farms/' + owner).update(pack).then(() => {
+        updateCloudStatus('✓ Bulut sinxron · ' + new Date().toLocaleTimeString('uz-UZ'));
+    }).catch(e => {
+        console.warn(e);
+        updateCloudStatus('Xato: sinxron bo‘lmadi');
+    });
 }
 let cloudPushTimer = null;
 function scheduleCloudPush() {
-    if (!cloudReady || !dataOwner) return;
+    if (!cloudReady || !dataOwner || cloudApplyingRemote) return;
     clearTimeout(cloudPushTimer);
-    cloudPushTimer = setTimeout(() => cloudPushFarm(dataOwner), 800);
+    cloudPushTimer = setTimeout(() => cloudPushFarm(dataOwner), 500);
+}
+function startCloudLive(owner) {
+    if (!cloudReady || !owner) return;
+    stopCloudLive();
+    cloudFarmListener = fbDb.ref('farms/' + owner);
+    cloudFarmListener.on('value', snap => {
+        const farm = snap.val();
+        if (!farm) return;
+        // o‘z pushimizdan kelgan yangilanishni ham qabul qilamiz — UI yangilanadi
+        const prev = localStorage.getItem('ferma_chorva_' + owner);
+        applyFarmToLocal(owner, farm);
+        const next = localStorage.getItem('ferma_chorva_' + owner);
+        if (prev !== next || true) {
+            // joriy ekranni yangilash
+            try {
+                rows = JSON.parse(localStorage.getItem(chorvaKey()) || '[]');
+                if (!Array.isArray(rows)) rows = [];
+                if (document.getElementById('view-chorva')?.classList.contains('active')) render();
+                if (document.getElementById('view-hujjat')?.classList.contains('active') && typeof renderDocList === 'function') renderDocList();
+                if (document.getElementById('view-oylik')?.classList.contains('active') && typeof renderOylik === 'function') renderOylik();
+                if (document.getElementById('view-yem')?.classList.contains('active') && typeof renderYem === 'function') renderYem();
+            } catch (e) { console.warn(e); }
+        }
+    });
+}
+function stopCloudLive() {
+    if (cloudFarmListener) {
+        try { cloudFarmListener.off(); } catch (_) {}
+        cloudFarmListener = null;
+    }
+}
+async function syncNow() {
+    if (!cloudReady || !dataOwner) {
+        toast('Bulut ulanmagan');
+        return;
+    }
+    toast('Sinxronlanmoqda...');
+    try {
+        // avval lokalni yuboramiz, keyin tortib olamiz
+        cloudPushFarm(dataOwner);
+        setTimeout(async () => {
+            await cloudPullFarm(dataOwner);
+            load();
+            if (typeof renderDocList === 'function') renderDocList();
+            toast('Sinxronlandi');
+        }, 600);
+    } catch (e) {
+        toast('Sinxron xato');
+    }
 }
 function chorvaKey() { return 'ferma_chorva_' + (dataOwner || 'guest'); }
 function docsKey() { return 'ferma_docs_' + (dataOwner || 'guest'); }
@@ -1101,7 +1186,7 @@ function doRegister(e) {
                 alert('Bulut: ' + (e.message || e) + '\nLekin shu qurilmada akkaunt yaratildi.');
             }
         }
-        enterApp();
+        await enterApp();
         toast(role === 'editor' ? 'Tahrirlovchi yaratildi' : 'Kuzatuvchi yaratildi');
     };
     finish();
@@ -1135,7 +1220,7 @@ function doLogin(e) {
         if (cloudReady) {
             try { await cloudPullFarm(dataOwner); } catch (e) { console.warn(e); }
         }
-        enterApp();
+        await enterApp();
         toast('Xush kelibsiz');
     };
 
@@ -1171,6 +1256,7 @@ function doLogin(e) {
 }
 function doLogout() {
     if (!confirm('Chiqasizmi?')) return;
+    stopCloudLive();
     localStorage.removeItem(SESSION_KEY);
     currentUser = null; currentRole = null; dataOwner = null; rows = [];
     document.getElementById('screen-app').classList.add('hidden');
@@ -1192,12 +1278,23 @@ function applyRoleUI() {
         else hb.classList.add('hidden');
     }
 }
-function enterApp() {
+async function enterApp() {
     document.getElementById('screen-login').classList.add('hidden');
     document.getElementById('screen-app').classList.remove('hidden');
     applyRoleUI();
+    if (cloudReady && dataOwner) {
+        try {
+            const had = await cloudPullFarm(dataOwner);
+            // agar bulut bo‘sh, lekin lokalda ma’lumot bor — yuboramiz
+            if (!had) {
+                const localC = localStorage.getItem(chorvaKey());
+                if (localC && localC !== '[]') cloudPushFarm(dataOwner);
+            }
+            startCloudLive(dataOwner);
+        } catch (e) { console.warn(e); }
+    }
     load();
-    renderDocList();
+    if (typeof renderDocList === 'function') renderDocList();
     showView('home');
 }
 
