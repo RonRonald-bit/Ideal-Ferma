@@ -925,6 +925,239 @@ function enterApp() {
     showView('home');
 }
 
+/* ===== 1) O'ZINGIZNING FIREBASE SOZLAMANGIZNI SHU YERGA QO'YING ===== */
+const FIREBASE_CONFIG = {
+  apiKey: "...", authDomain: "...", projectId: "...",
+  storageBucket: "...", messagingSenderId: "...", appId: "..."
+};
+/* =================================================================== */
+
+firebase.initializeApp(FIREBASE_CONFIG);
+const fbAuth = firebase.auth(), fb = firebase.firestore();
+const mail = l => l + '@idealferma.app';
+const usersCol = () => fb.collection('users');
+const kvCol = () => fb.collection('data').doc(dataOwner).collection('kv');
+async function getProfile(l) { const d = await usersCol().doc(l).get(); return d.exists ? d.data() : null; }
+
+let busy = false;
+const authMsg = e => ({
+  'auth/email-already-in-use': 'Login band',
+  'auth/weak-password': 'Parol kamida 6 belgi',
+  'auth/invalid-credential': 'Login yoki parol noto‘g‘ri',
+  'auth/wrong-password': 'Login yoki parol noto‘g‘ri',
+  'auth/user-not-found': 'Login yoki parol noto‘g‘ri',
+  'auth/network-request-failed': 'Internet yo‘q'
+}[e.code] || ('Xato: ' + e.message));
+
+/* ---------- Bulutga avtomatik saqlash ---------- */
+const SYNC_PREFIXES = ['ferma_chorva_', 'ferma_docs_', 'ferma_yem_', 'ferma_payroll_'];
+const isSync = k => SYNC_PREFIXES.some(p => k.startsWith(p)) && !k.endsWith('_used');
+const _origSet = Storage.prototype.setItem;
+const rawSet = (k, v) => _origSet.call(localStorage, k, v);
+Storage.prototype.setItem = function (k, v) {
+  _origSet.call(this, k, v);
+  if (this === localStorage) cloudQueue(k, String(v));
+};
+let pending = {}, pushTimer = null;
+function cloudQueue(k, v) {
+  if (!isSync(k) || !currentUser || !canEdit()) return;
+  pending[k] = v;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(flushPush, 500);
+}
+async function flushPush() {
+  const batch = pending; pending = {};
+  for (const k in batch) {
+    try { await cloudWrite(k, batch[k]); }
+    catch (e) { console.error(e); toast('Bulutga saqlanmadi! Internetni tekshiring'); }
+  }
+}
+const CH = 300000; // Firestore 1MB limitidan oshmasligi uchun bo‘laklab yoziladi
+async function cloudWrite(k, v) {
+  const col = kvCol(), parts = [];
+  for (let i = 0; i < v.length; i += CH) parts.push(v.slice(i, i + CH));
+  if (!parts.length) parts.push('');
+  for (let i = 0; i < parts.length; i++) await col.doc(k + '__' + i).set({ v: parts[i] });
+  await col.doc(k + '__meta').set({ n: parts.length, t: Date.now() });
+}
+async function cloudPull() {
+  if (!dataOwner) return false;
+  let changed = false;
+  const col = kvCol();
+  await Promise.all(SYNC_PREFIXES.map(async p => {
+    const k = p + dataOwner;
+    const m = await col.doc(k + '__meta').get();
+    if (!m.exists) {
+      // bulutda yo‘q, lekin shu qurilmada eski ma'lumot bor bo‘lsa — yuklab yuboramiz
+      const local = localStorage.getItem(k);
+      if (local && canEdit()) cloudQueue(k, local);
+      return;
+    }
+    const n = m.data().n; let s = '';
+    for (let i = 0; i < n; i++) { const d = await col.doc(k + '__' + i).get(); s += d.exists ? d.data().v : ''; }
+    if (s !== localStorage.getItem(k)) { rawSet(k, s); changed = true; }
+    if (p === 'ferma_chorva_') rawSet(k + '_used', '1');
+  }));
+  return changed;
+}
+async function refreshFromCloud() {
+  if (!currentUser || Object.keys(pending).length) return;
+  try {
+    if (currentRole === 'viewer') {
+      const p = await getProfile(currentUser);
+      if (!p || p.blocked) { await fbAuth.signOut(); location.reload(); return; }
+    }
+    if (await cloudPull()) {
+      load();
+      const v = document.querySelector('.view.active');
+      const n = v ? v.id.replace('view-', '') : '';
+      if (n === 'hujjat') renderDocList();
+      if (n === 'oylik') renderOylik();
+      if (n === 'yem') renderYem();
+    }
+  } catch (e) { console.error(e); }
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshFromCloud(); });
+setInterval(() => { if (currentUser && currentRole === 'viewer' && !document.hidden) refreshFromCloud(); }, 20000);
+
+/* ---------- Kirish / ro‘yxat (eskilarini almashtiradi) ---------- */
+async function startSession(login, p) {
+  p = p || await getProfile(login);
+  currentUser = login; currentRole = p.role || 'editor'; dataOwner = p.watch || login;
+  await enterApp();
+}
+async function enterApp() {
+  toast('Yuklanmoqda...');
+  try { await cloudPull(); } catch (e) { console.error(e); toast('Bulutdan o‘qib bo‘lmadi'); }
+  document.getElementById('screen-login').classList.add('hidden');
+  document.getElementById('screen-app').classList.remove('hidden');
+  applyRoleUI(); load(); renderDocList(); showView('home');
+}
+async function doRegister(e) {
+  e.preventDefault(); busy = true;
+  const g = id => document.getElementById(id);
+  const user = g('regUser').value.trim().toLowerCase();
+  const name = g('regName').value.trim() || user;
+  const role = g('regRole').value;
+  const watch = g('regWatch').value.trim().toLowerCase();
+  const pass = g('regPass').value, pass2 = g('regPass2').value;
+  const err = g('regErr');
+  const fail = m => { err.textContent = m; err.classList.remove('hidden'); return false; };
+  try {
+    if (pass.length < 6) return fail('Parol kamida 6 belgi');
+    if (pass !== pass2) return fail('Parollar mos emas');
+    if (!/^[a-z0-9._-]{2,30}$/i.test(user)) return fail('Login noto‘g‘ri');
+    if (role === 'viewer' && !watch) return fail('Tahrirlovchi loginini yozing');
+    const cred = await fbAuth.createUserWithEmailAndPassword(mail(user), pass);
+    if (role === 'viewer') {
+      const ep = await getProfile(watch);
+      if (!ep || ep.role !== 'editor') { await cred.user.delete(); return fail('Bunday tahrirlovchi yo‘q'); }
+    }
+    await usersCol().doc(user).set({
+      name, role, watch: role === 'viewer' ? watch : user, uid: cred.user.uid,
+      created: Date.now(), lastLogin: Date.now(), loginCount: 1, blocked: false
+    });
+    await startSession(user);
+    if (role === 'editor') {
+      if (!localStorage.getItem(chorvaKey())) localStorage.setItem(chorvaKey(), '[]');
+      if (!localStorage.getItem(docsKey())) localStorage.setItem(docsKey(), '[]');
+    }
+    toast(role === 'editor' ? 'Tahrirlovchi yaratildi' : 'Kuzatuvchi yaratildi');
+  } catch (ex) { fail(authMsg(ex)); }
+  finally { busy = false; }
+  return false;
+}
+async function doLogin(e) {
+  e.preventDefault(); busy = true;
+  const user = document.getElementById('loginUser').value.trim().toLowerCase();
+  const pass = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginErr');
+  const fail = m => { err.textContent = m; err.classList.remove('hidden'); return false; };
+  err.classList.add('hidden');
+  try {
+    await fbAuth.signInWithEmailAndPassword(mail(user), pass);
+    const p = await getProfile(user);
+    if (!p) { await fbAuth.signOut(); return fail('Hisob topilmadi'); }
+    if (p.blocked) { await fbAuth.signOut(); return fail('Hisob yopilgan (ishdan bo‘shatilgan)'); }
+    usersCol().doc(user).update({ lastLogin: Date.now(), loginCount: (p.loginCount || 0) + 1 }).catch(() => {});
+    await startSession(user, p);
+    toast('Xush kelibsiz');
+  } catch (ex) { fail(authMsg(ex)); }
+  finally { busy = false; }
+  return false;
+}
+async function doLogout() {
+  if (!confirm('Chiqasizmi?')) return;
+  try { await flushPush(); } catch {}
+  await fbAuth.signOut();
+  Object.keys(localStorage).filter(isSync).forEach(k => localStorage.removeItem(k));
+  currentUser = null; currentRole = null; dataOwner = null; rows = [];
+  document.getElementById('screen-app').classList.add('hidden');
+  document.getElementById('screen-login').classList.remove('hidden');
+}
+fbAuth.onAuthStateChanged(async u => {
+  if (busy) return;
+  if (!u) {
+    document.getElementById('screen-app').classList.add('hidden');
+    document.getElementById('screen-login').classList.remove('hidden');
+    return;
+  }
+  const login = u.email.split('@')[0];
+  if (currentUser === login) return;
+  const p = await getProfile(login);
+  if (!p || p.blocked) { await fbAuth.signOut(); return; }
+  await startSession(login, p);
+});
+
+/* ---------- Jamoa (eskisini almashtiradi) ---------- */
+async function renderTeam() {
+  if (!canEdit()) return;
+  const snap = await usersCol().where('watch', '==', currentUser).get();
+  const list = snap.docs.map(d => ({ login: d.id, ...d.data() }))
+    .filter(v => v.role === 'viewer').sort((a, b) => (b.lastLogin || 0) - (a.lastLogin || 0));
+  const active = list.filter(v => !v.blocked), blocked = list.filter(v => v.blocked);
+  const recent = list.filter(v => v.lastLogin && (Date.now() - v.lastLogin) < 86400000);
+  document.getElementById('teamStats').innerHTML = [
+    { label: 'Jami', val: list.length, color: 'text-white' },
+    { label: 'Faol', val: active.length, color: 'text-green-400' },
+    { label: 'Bo‘shatilgan', val: blocked.length, color: 'text-red-400' },
+    { label: 'Bugun', val: recent.length, color: 'text-sky-400' },
+  ].map(c => `<div class="stat-card"><div class="text-[10px] uppercase text-slate-500 font-bold">${c.label}</div>
+    <div class="text-2xl font-extrabold ${c.color} mt-0.5">${c.val}</div></div>`).join('');
+  const box = document.getElementById('teamList');
+  if (!list.length) {
+    box.innerHTML = `<div class="glass rounded-2xl p-8 text-center text-slate-400">Kuzatuvchi yo‘q<br><span class="text-sm">Login: <b class="text-white">@${currentUser}</b></span></div>`;
+    return;
+  }
+  box.innerHTML = list.map(v => {
+    const status = v.blocked ? '<span class="text-red-400 font-bold text-xs">🚫 Bo‘shatilgan</span>' : '<span class="text-green-400 font-bold text-xs">✓ Faol</span>';
+    const btns = v.blocked
+      ? `<button type="button" onclick="unblockViewer('${v.login}')" class="btn-g text-xs py-2 px-3">Qayta qo‘shish</button>
+         <button type="button" onclick="deleteViewer('${v.login}')" class="text-xs font-semibold text-red-400 px-2">To‘liq o‘chirish</button>`
+      : `<button type="button" onclick="blockViewer('${v.login}')" class="glass text-xs font-semibold text-amber-400 px-3 py-2 rounded-lg">Ishdan bo‘shatish</button>
+         <button type="button" onclick="deleteViewer('${v.login}')" class="text-xs font-semibold text-red-400 px-2">To‘liq o‘chirish</button>`;
+    return `<div class="glass rounded-2xl p-4 ${v.blocked ? 'opacity-70' : ''}">
+      <div class="flex flex-wrap justify-between gap-3"><div>
+        <div class="font-bold text-white">@${esc(v.login)}${v.name && v.name !== v.login ? ' · ' + esc(v.name) : ''}</div>
+        <div class="text-xs text-slate-400 mt-1">${status}</div>
+        <div class="text-xs text-slate-500 mt-2">Oxirgi: ${formatWhen(v.lastLogin)}</div>
+        <div class="text-xs text-slate-500">Kirishlar: ${v.loginCount || 0}</div>
+      </div><div class="flex flex-wrap gap-2">${btns}</div></div></div>`;
+  }).join('');
+}
+async function blockViewer(l) {
+  if (!canEdit() || !confirm('@' + l + ' ni bo‘shatasizmi?')) return;
+  await usersCol().doc(l).update({ blocked: true }); renderTeam(); toast('Bo‘shatildi');
+}
+async function unblockViewer(l) {
+  if (!canEdit() || !confirm('@' + l + ' ni qayta qo‘shasizmi?')) return;
+  await usersCol().doc(l).update({ blocked: false }); renderTeam(); toast('Qayta qo‘shildi');
+}
+async function deleteViewer(l) {
+  if (!canEdit() || !confirm('@' + l + ' ni TO‘LIQ o‘chirasizmi?')) return;
+  await usersCol().doc(l).delete(); renderTeam(); toast('O‘chirildi');
+}
+
 
 /* ========== NAV ========== */
 function showView(name) {
