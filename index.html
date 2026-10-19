@@ -809,45 +809,7 @@
 <div id="acBox"></div>
 
 <script>
-(function () {
-  const DB = 'https://SIZNING-LOYIHA-default-rtdb.firebaseio.com'; // <-- o'zingiznikini yozing
-  const PREFIX = 'ferma_';
-  const SKIP = ['ferma_session_v3'];
-  const rawSet = Storage.prototype.setItem;
-  const rawRemove = Storage.prototype.removeItem;
-  const safe = k => k.replace(/[.$#\[\]\/]/g, '_');
-  const want = k => k.startsWith(PREFIX) && !SKIP.includes(k);
 
-  // 1) Sahifa ochilganda bazadan hamma narsani olish (dastur ishga tushishidan oldin)
-  try {
-    const x = new XMLHttpRequest();
-    x.open('GET', DB + '/store.json', false);
-    x.send();
-    if (x.status === 200 && x.responseText && x.responseText !== 'null') {
-      const all = JSON.parse(x.responseText);
-      Object.values(all).forEach(o => {
-        if (o && o.k && want(o.k)) rawSet.call(localStorage, o.k, o.v);
-      });
-    }
-  } catch (e) { console.warn('Sync yuklanmadi', e); }
-
-  // 2) Har bir saqlash/o'chirish bazaga ham yuboriladi
-  Storage.prototype.setItem = function (k, v) {
-    rawSet.call(this, k, v);
-    if (this === localStorage && want(k)) {
-      fetch(DB + '/store/' + safe(k) + '.json', {
-        method: 'PUT', keepalive: true,
-        body: JSON.stringify({ k: k, v: String(v) })
-      }).catch(() => {});
-    }
-  };
-  Storage.prototype.removeItem = function (k) {
-    rawRemove.call(this, k);
-    if (this === localStorage && want(k)) {
-      fetch(DB + '/store/' + safe(k) + '.json', { method: 'DELETE', keepalive: true }).catch(() => {});
-    }
-  };
-})();
 /* ========== AUTH / MULTI-USER (qo‘shilgan) ========== */
 const USERS_KEY = 'ferma_users_v3';
 const SESSION_KEY = 'ferma_session_v3';
