@@ -10,6 +10,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Ideal Ferma — Chorva va Hujjatlar</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { font-family: 'Inter', system-ui, sans-serif; }
@@ -276,6 +279,20 @@
             .nav-btn { font-size: 12px; padding: 7px 10px; }
             h1 { font-size: 1.5rem !important; }
         }
+        @media (orientation: landscape) and (max-height: 500px) {
+            header > div { height: auto !important; padding: 4px 10px !important; row-gap: 2px; }
+            header nav { padding-bottom: 2px; }
+            .nav-btn { padding: 6px 10px; font-size: 12px; min-height: 32px; }
+            #view-chorva > div { padding-top: 6px !important; padding-bottom: 4px !important; }
+            #view-chorva .mb-5, #view-chorva .mb-4, #view-chorva .mb-3 { margin-bottom: 6px !important; }
+            #view-chorva #stats { display: none; }
+            .sheet-wrap { max-height: calc(100dvh - 110px) !important; -webkit-overflow-scrolling: touch; }
+            table.sheet th { padding: 6px 8px; font-size: 10px; }
+            table.sheet input, table.sheet select { padding: 6px 8px; font-size: 12px; }
+        }
+        @media (orientation: landscape) and (max-height: 420px) {
+            .sheet-wrap { max-height: calc(100dvh - 90px) !important; }
+        }
     </style></head>
 <body class="antialiased">
 
@@ -302,6 +319,16 @@
             </div>
             <p id="loginErr" class="text-red-400 text-sm hidden"></p>
             <button type="submit" class="btn-g w-full py-3.5 text-base">Kirish</button>
+            <div class="pt-3 space-y-2 border-t border-white/10 mt-3">
+                <button type="button" onclick="openCloudSetup()" class="w-full btn-g py-2.5 text-xs">☁ Boshqa telefonlarda ham ochilsin (Bulut)</button>
+                <p id="cloudStatusLogin" class="text-[11px] text-center text-slate-500"></p>
+                <p class="text-[11px] text-slate-500 text-center">Yoki fayl orqali:</p>
+                <button type="button" onclick="exportAllBackup()" class="w-full glass rounded-xl py-2.5 text-xs font-semibold text-slate-300 border border-white/10">⬇ Zaxira saqlash</button>
+                <label class="block w-full glass rounded-xl py-2.5 text-xs font-semibold text-sky-300 border border-sky-500/25 text-center cursor-pointer">
+                    ⬆ Zaxira yuklash
+                    <input type="file" accept="application/json,.json" class="hidden" onchange="importAllBackup(event)">
+                </label>
+            </div>
         </form>
         <form id="form-reg" class="space-y-4 hidden" onsubmit="return doRegister(event)">
             <div>
@@ -324,7 +351,7 @@
                 <input id="regWatch" class="w-full glass rounded-xl px-4 py-3.5 text-base text-white border border-white/10" placeholder="ali">
             </div>
             <div>
-                <label class="block text-sm font-semibold text-slate-300 mb-1.5">Parol * (min 4)</label>
+                <label class="block text-sm font-semibold text-slate-300 mb-1.5">Parol * (min 4, bulut uchun 6+)</label>
                 <input id="regPass" type="password" required minlength="4" class="w-full glass rounded-xl px-4 py-3.5 text-base text-white border border-white/10">
             </div>
             <div>
@@ -407,7 +434,25 @@
             </div>
         </div>
         <div id="homeBanner" class="view-banner mt-6 text-center hidden"></div>
-        <p class="text-center text-[11px] text-slate-600 mt-12">Ma’lumotlar faqat shu brauzerda · 2026</p>
+        <div class="mt-10 glass rounded-2xl p-4 border border-white/10 space-y-3">
+            <div>
+                <div class="text-sm font-bold text-white mb-1">☁ Boshqa telefonlarda ochish</div>
+                <p id="cloudStatusHome" class="text-xs text-slate-400 mb-2">Bulut ulanmagan — faqat shu qurilmada.</p>
+                <button type="button" onclick="openCloudSetup()" class="btn-g text-xs py-2.5 px-4">Bulutni sozlash</button>
+            </div>
+            <div class="border-t border-white/10 pt-3">
+                <div class="text-sm font-bold text-white mb-1">📦 Zaxira fayl (ixtiyoriy)</div>
+                <p class="text-xs text-slate-400 mb-2">Bulut bo‘lmasa: saqlash → boshqa telefonga yuborish → yuklash.</p>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" onclick="exportAllBackup()" class="glass text-xs font-semibold text-slate-300 px-4 py-2.5 rounded-lg border border-white/10">⬇ Zaxira saqlash</button>
+                    <label class="glass text-xs font-semibold text-sky-300 px-4 py-2.5 rounded-lg border border-sky-500/30 cursor-pointer">
+                        ⬆ Zaxira yuklash
+                        <input type="file" accept="application/json,.json" class="hidden" onchange="importAllBackup(event)">
+                    </label>
+                </div>
+            </div>
+        </div>
+        <p class="text-center text-[11px] text-slate-600 mt-8">Ideal Ferma · 2026</p>
     </div>
 </div>
 
@@ -805,6 +850,32 @@
 </div>
 
 </div><!-- /screen-app -->
+<!-- CLOUD SETUP -->
+<div id="cloudModal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4 modal-bg">
+    <div class="glass rounded-2xl w-full max-w-lg p-5 border border-white/10 max-h-[92dvh] overflow-y-auto">
+        <div class="flex justify-between items-start mb-3">
+            <h2 class="text-lg font-bold text-white">☁ Bulut — barcha telefonlar</h2>
+            <button type="button" onclick="closeCloudSetup()" class="text-slate-400 text-xl">&times;</button>
+        </div>
+        <p class="text-xs text-slate-400 mb-3 leading-relaxed">Bir marta bepul Firebase ochasiz. Keyin <b class="text-slate-300">bir xil login/parol</b> telefon, planshet, kompyuterda ishlaydi.</p>
+        <ol class="text-xs text-slate-300 space-y-1.5 mb-4 list-decimal pl-4 leading-relaxed">
+            <li><a href="https://console.firebase.google.com/" target="_blank" class="text-sky-400 underline">console.firebase.google.com</a> oching (Google akkaunt)</li>
+            <li><b>Add project</b> → nom: IdealFerma → Create</li>
+            <li>Chapda <b>Build → Authentication</b> → Get started → <b>Email/Password</b> → Enable → Save</li>
+            <li>Chapda <b>Build → Realtime Database</b> → Create Database → <b>Start in test mode</b> → Enable</li>
+            <li>Chapda ⚙️ <b>Project settings</b> → pastga <b>Your apps</b> → <b>Web</b> (&lt;/&gt;) → nom: ferma → Register</li>
+            <li><b>firebaseConfig</b> kodini nusxa oling (apiKey, authDomain…)</li>
+        </ol>
+        <label class="block text-xs font-semibold text-slate-400 mb-1">firebaseConfig (yoki butun object)</label>
+        <textarea id="cloudConfigInput" rows="8" placeholder='{"apiKey":"...","authDomain":"...","databaseURL":"...","projectId":"...","storageBucket":"...","messagingSenderId":"...","appId":"..."}' class="w-full glass rounded-xl px-3 py-2 text-xs text-white border border-white/10 font-mono"></textarea>
+        <p class="text-[10px] text-slate-500 mt-1 mb-3">databaseURL bo‘lmasa Realtime Database URL ni qo‘shing (masalan https://PROJECT-id-default-rtdb.firebaseio.com)</p>
+        <div class="flex gap-2">
+            <button type="button" onclick="closeCloudSetup()" class="flex-1 glass rounded-xl py-3 text-sm">Bekor</button>
+            <button type="button" onclick="saveCloudConfig()" class="flex-1 btn-g py-3 text-sm">Saqlash va ulash</button>
+        </div>
+        <button type="button" onclick="clearCloudConfig()" class="w-full mt-2 text-xs text-red-400 py-2">Bulutni o‘chirish (faqat shu qurilma)</button>
+    </div>
+</div>
 <div id="toast" class="toast"></div>
 <div id="acBox"></div>
 
@@ -813,17 +884,167 @@
 /* ========== AUTH / MULTI-USER (qo‘shilgan) ========== */
 const USERS_KEY = 'ferma_users_v3';
 const SESSION_KEY = 'ferma_session_v3';
+const CLOUD_CFG_KEY = 'ferma_firebase_cfg_v1';
 let currentUser = null;
 let currentRole = null;
 let dataOwner = null;
+let fbApp = null, fbAuth = null, fbDb = null, cloudReady = false;
 function canEdit() { return currentRole === 'editor'; }
 function hash(s) {
     let h = 0; const str = String(s);
     for (let i = 0; i < str.length; i++) h = ((h << 5) - h) + str.charCodeAt(i) | 0;
     return 'h' + Math.abs(h) + '_' + str.length;
 }
+function emailOf(login) { return String(login).toLowerCase().trim() + '@idealferma.local'; }
 function getUsers() { try { return JSON.parse(localStorage.getItem(USERS_KEY) || '{}'); } catch { return {}; } }
 function saveUsers(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
+
+const DEFAULT_FIREBASE_CFG = {
+  "apiKey": "AIzaSyBfap8N7Hg6k8hrvkaNfgsQWZSPDHjdBlU",
+  "authDomain": "ideal-ferma.firebaseapp.com",
+  "databaseURL": "https://ideal-ferma-default-rtdb.firebaseio.com",
+  "projectId": "ideal-ferma",
+  "storageBucket": "ideal-ferma.firebasestorage.app",
+  "messagingSenderId": "597596709528",
+  "appId": "1:597596709528:web:6ef5e857808e338de626ed",
+  "measurementId": "G-3FX9QCRQ63"
+};
+function getCloudConfig() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(CLOUD_CFG_KEY) || 'null');
+        if (saved && saved.apiKey) return saved;
+    } catch (_) {}
+    return DEFAULT_FIREBASE_CFG;
+}
+function initCloud() {
+    cloudReady = false; fbApp = null; fbAuth = null; fbDb = null;
+    const cfg = getCloudConfig();
+    if (!cfg || !cfg.apiKey) { updateCloudStatus(); return false; }
+    // birinchi ochilishda default ni saqlab qo‘yamiz
+    if (!localStorage.getItem(CLOUD_CFG_KEY)) {
+        try { localStorage.setItem(CLOUD_CFG_KEY, JSON.stringify(cfg)); } catch (_) {}
+    }
+    try {
+        if (!firebase.apps.length) fbApp = firebase.initializeApp(cfg);
+        else fbApp = firebase.app();
+        fbAuth = firebase.auth();
+        fbDb = firebase.database();
+        cloudReady = true;
+        updateCloudStatus();
+        return true;
+    } catch (e) {
+        console.error(e);
+        cloudReady = false;
+        updateCloudStatus('Xato: ' + (e.message || e));
+        return false;
+    }
+}
+function updateCloudStatus(extra) {
+    const ok = cloudReady;
+    const msg = extra || (ok ? '✓ Bulut ulangan — barcha telefonlarda bir xil login ishlaydi' : 'Bulut ulanmagan — faqat shu qurilma (yoki zaxira fayl)');
+    const color = extra && extra.indexOf('Xato') === 0 ? 'text-red-400' : (ok ? 'text-green-400' : 'text-slate-500');
+    ['cloudStatusLogin','cloudStatusHome'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.textContent = msg; el.className = 'text-[11px] text-center ' + color; }
+    });
+}
+function openCloudSetup() {
+    const el = document.getElementById('cloudModal');
+    el.classList.remove('hidden'); el.classList.add('flex');
+    const cfg = getCloudConfig() || DEFAULT_FIREBASE_CFG;
+    document.getElementById('cloudConfigInput').value = JSON.stringify(cfg, null, 2);
+}
+function closeCloudSetup() {
+    const el = document.getElementById('cloudModal');
+    el.classList.add('hidden'); el.classList.remove('flex');
+}
+function saveCloudConfig() {
+    let raw = (document.getElementById('cloudConfigInput').value || '').trim();
+    if (!raw) { alert('Config yozing'); return; }
+    // extract object if pasted with const firebaseConfig = {...}
+    const m = raw.match(/\{[\s\S]*\}/);
+    if (m) raw = m[0];
+    let cfg;
+    try { cfg = JSON.parse(raw); } catch (e) { alert('JSON noto‘g‘ri. firebaseConfig objectini to‘liq nusxa oling.'); return; }
+    if (!cfg.apiKey || !cfg.projectId) { alert('apiKey va projectId kerak'); return; }
+    if (!cfg.databaseURL) {
+        cfg.databaseURL = 'https://' + cfg.projectId + '-default-rtdb.firebaseio.com';
+    }
+    localStorage.setItem(CLOUD_CFG_KEY, JSON.stringify(cfg));
+    // re-init
+    try { if (firebase.apps.length) firebase.app().delete(); } catch (_) {}
+    if (initCloud()) {
+        closeCloudSetup();
+        toast('Bulut ulandi');
+        alert('Tayyor!\n\nEndi shu login/parol bilan boshqa telefonda ham kirasiz.\n(Boshqa telefonda ham shu config ni bir marta yopishtiring yoki zaxira orqali config ham ko‘chadi)');
+    } else {
+        alert('Ulanmadi. databaseURL va Email/Password yoqilganini tekshiring.');
+    }
+}
+function clearCloudConfig() {
+    if (!confirm('Bulut sozlamasi o‘chirilsinmi?')) return;
+    localStorage.removeItem(CLOUD_CFG_KEY);
+    try { if (firebase.apps.length) firebase.app().delete(); } catch (_) {}
+    cloudReady = false; fbAuth = null; fbDb = null;
+    updateCloudStatus();
+    closeCloudSetup();
+    toast('Bulut o‘chirildi');
+}
+async function cloudUpsertUser(login, pass, profile) {
+    if (!cloudReady) return;
+    const email = emailOf(login);
+    try {
+        await fbAuth.createUserWithEmailAndPassword(email, pass);
+    } catch (e) {
+        if (e.code === 'auth/email-already-in-use') {
+            await fbAuth.signInWithEmailAndPassword(email, pass);
+        } else if (e.code === 'auth/weak-password') {
+            throw new Error('Parol kamida 6 belgi (bulut uchun)');
+        } else throw e;
+    }
+    await fbDb.ref('users/' + login.toLowerCase()).set({
+        name: profile.name || login,
+        role: profile.role || 'editor',
+        watch: profile.watch || login,
+        created: profile.created || Date.now(),
+        blocked: !!profile.blocked,
+        loginCount: profile.loginCount || 1,
+        lastLogin: Date.now()
+    });
+}
+async function cloudLogin(login, pass) {
+    if (!cloudReady) return null;
+    await fbAuth.signInWithEmailAndPassword(emailOf(login), pass);
+    const snap = await fbDb.ref('users/' + login.toLowerCase()).once('value');
+    return snap.val();
+}
+async function cloudPullFarm(owner) {
+    if (!cloudReady || !owner) return;
+    const snap = await fbDb.ref('farms/' + owner).once('value');
+    const farm = snap.val();
+    if (!farm) return;
+    if (farm.chorva != null) localStorage.setItem('ferma_chorva_' + owner, typeof farm.chorva === 'string' ? farm.chorva : JSON.stringify(farm.chorva));
+    if (farm.docs != null) localStorage.setItem('ferma_docs_' + owner, typeof farm.docs === 'string' ? farm.docs : JSON.stringify(farm.docs));
+    if (farm.yem != null) localStorage.setItem('ferma_yem_' + owner, typeof farm.yem === 'string' ? farm.yem : JSON.stringify(farm.yem));
+    if (farm.payroll != null) localStorage.setItem('ferma_payroll_' + owner, typeof farm.payroll === 'string' ? farm.payroll : JSON.stringify(farm.payroll));
+}
+function cloudPushFarm(owner) {
+    if (!cloudReady || !owner) return;
+    const pack = {
+        chorva: localStorage.getItem('ferma_chorva_' + owner) || '[]',
+        docs: localStorage.getItem('ferma_docs_' + owner) || '[]',
+        yem: localStorage.getItem('ferma_yem_' + owner) || '[]',
+        payroll: localStorage.getItem('ferma_payroll_' + owner) || '{"workers":[],"pays":[]}',
+        updatedAt: Date.now()
+    };
+    fbDb.ref('farms/' + owner).update(pack).catch(e => console.warn(e));
+}
+let cloudPushTimer = null;
+function scheduleCloudPush() {
+    if (!cloudReady || !dataOwner) return;
+    clearTimeout(cloudPushTimer);
+    cloudPushTimer = setTimeout(() => cloudPushFarm(dataOwner), 800);
+}
 function chorvaKey() { return 'ferma_chorva_' + (dataOwner || 'guest'); }
 function docsKey() { return 'ferma_docs_' + (dataOwner || 'guest'); }
 function yemKey() { return 'ferma_yem_' + (dataOwner || 'guest'); }
@@ -862,16 +1083,28 @@ function doRegister(e) {
             err.textContent = 'Bunday tahrirlovchi yo‘q'; err.classList.remove('hidden'); return false;
         }
     }
-    users[user] = { pass: hash(pass), name, role, watch: role === 'viewer' ? watch : user, created: Date.now(), lastLogin: Date.now(), loginCount: 1, blocked: false };
-    saveUsers(users);
-    currentUser = user; currentRole = role; dataOwner = role === 'viewer' ? watch : user;
-    localStorage.setItem(SESSION_KEY, user);
-    if (role === 'editor') {
-        if (!localStorage.getItem(chorvaKey())) localStorage.setItem(chorvaKey(), '[]');
-        if (!localStorage.getItem(docsKey())) localStorage.setItem(docsKey(), '[]');
-    }
-    enterApp();
-    toast(role === 'editor' ? 'Tahrirlovchi yaratildi' : 'Kuzatuvchi yaratildi');
+    const profile = { pass: hash(pass), name, role, watch: role === 'viewer' ? watch : user, created: Date.now(), lastLogin: Date.now(), loginCount: 1, blocked: false };
+    const finish = async () => {
+        users[user] = profile;
+        saveUsers(users);
+        currentUser = user; currentRole = role; dataOwner = role === 'viewer' ? watch : user;
+        localStorage.setItem(SESSION_KEY, user);
+        if (role === 'editor') {
+            if (!localStorage.getItem(chorvaKey())) localStorage.setItem(chorvaKey(), '[]');
+            if (!localStorage.getItem(docsKey())) localStorage.setItem(docsKey(), '[]');
+        }
+        if (cloudReady) {
+            try {
+                await cloudUpsertUser(user, pass, profile);
+                scheduleCloudPush();
+            } catch (e) {
+                alert('Bulut: ' + (e.message || e) + '\nLekin shu qurilmada akkaunt yaratildi.');
+            }
+        }
+        enterApp();
+        toast(role === 'editor' ? 'Tahrirlovchi yaratildi' : 'Kuzatuvchi yaratildi');
+    };
+    finish();
     return false;
 }
 function doLogin(e) {
@@ -879,19 +1112,62 @@ function doLogin(e) {
     const user = document.getElementById('loginUser').value.trim().toLowerCase();
     const pass = document.getElementById('loginPass').value;
     const err = document.getElementById('loginErr');
+    err.classList.add('hidden');
     const users = getUsers();
-    if (!users[user] || users[user].pass !== hash(pass)) {
-        err.textContent = 'Login yoki parol noto‘g‘ri'; err.classList.remove('hidden'); return false;
-    }
-    if (users[user].blocked) {
-        err.textContent = 'Hisob yopilgan (ishdan bo‘shatilgan)'; err.classList.remove('hidden'); return false;
-    }
-    users[user].lastLogin = Date.now();
-    users[user].loginCount = (users[user].loginCount || 0) + 1;
-    saveUsers(users);
-    currentUser = user; currentRole = users[user].role || 'editor'; dataOwner = users[user].watch || user;
-    localStorage.setItem(SESSION_KEY, user);
-    enterApp(); toast('Xush kelibsiz'); return false;
+    const localOk = users[user] && users[user].pass === hash(pass) && !users[user].blocked;
+
+    const enter = async (profile) => {
+        if (profile.blocked) {
+            err.textContent = 'Hisob yopilgan (ishdan bo‘shatilgan)'; err.classList.remove('hidden'); return;
+        }
+        users[user] = {
+            ...(users[user] || {}),
+            ...profile,
+            pass: hash(pass),
+            lastLogin: Date.now(),
+            loginCount: ((users[user] && users[user].loginCount) || 0) + 1
+        };
+        saveUsers(users);
+        currentUser = user;
+        currentRole = users[user].role || 'editor';
+        dataOwner = users[user].watch || user;
+        localStorage.setItem(SESSION_KEY, user);
+        if (cloudReady) {
+            try { await cloudPullFarm(dataOwner); } catch (e) { console.warn(e); }
+        }
+        enterApp();
+        toast('Xush kelibsiz');
+    };
+
+    (async () => {
+        if (localOk) {
+            await enter(users[user]);
+            // ham bulutga sinxron
+            if (cloudReady) {
+                try { await cloudUpsertUser(user, pass, users[user]); } catch (_) {}
+            }
+            return;
+        }
+        if (cloudReady) {
+            try {
+                const remote = await cloudLogin(user, pass);
+                if (!remote) {
+                    err.textContent = 'Login yoki parol noto‘g‘ri'; err.classList.remove('hidden'); return;
+                }
+                await enter(remote);
+                return;
+            } catch (e) {
+                err.textContent = (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential')
+                    ? 'Login yoki parol noto‘g‘ri (bulut)'
+                    : ('Xato: ' + (e.message || e));
+                err.classList.remove('hidden');
+                return;
+            }
+        }
+        err.textContent = 'Login yoki parol noto‘g‘ri';
+        err.classList.remove('hidden');
+    })();
+    return false;
 }
 function doLogout() {
     if (!confirm('Chiqasizmi?')) return;
@@ -1005,6 +1281,7 @@ function persist() {
     if (!canEdit()) { toast('Kuzatuvchi o‘zgartira olmaydi'); return; }
     localStorage.setItem(chorvaKey(), JSON.stringify(rows));
     localStorage.setItem(chorvaKey() + '_used', '1');
+    scheduleCloudPush();
 }
 
 function calcAge(dateStr) {
@@ -1310,6 +1587,7 @@ function loadDocs() {
 function saveDocs(docs) {
     if (!canEdit()) { toast('Kuzatuvchi o‘zgartira olmaydi'); return; }
     localStorage.setItem(docsKey(), JSON.stringify(docs));
+    scheduleCloudPush();
 }
 
 function formatSize(bytes) {
@@ -1502,7 +1780,7 @@ function loadPayroll() {
 }
 function savePayroll(d) {
     if (!canEdit()) { toast('Kuzatuvchi o‘zgartira olmaydi'); return false; }
-    try { localStorage.setItem(payrollKey(), JSON.stringify(d)); return true; }
+    try { localStorage.setItem(payrollKey(), JSON.stringify(d)); scheduleCloudPush(); return true; }
     catch { alert('Saqlanmadi'); return false; }
 }
 function money(n) { return (Number(n) || 0).toLocaleString('uz-UZ') + ' so‘m'; }
@@ -1899,7 +2177,7 @@ function loadYem() {
 }
 function saveYemList(list) {
     if (!canEdit()) { toast('Kuzatuvchi o‘zgartira olmaydi'); return false; }
-    try { localStorage.setItem(yemKey(), JSON.stringify(list)); return true; }
+    try { localStorage.setItem(yemKey(), JSON.stringify(list)); scheduleCloudPush(); return true; }
     catch { alert('Saqlanmadi'); return false; }
 }
 function initYemSelects() {
@@ -2143,9 +2421,101 @@ function deleteViewer(login) {
 document.getElementById('workerModal') && document.getElementById('workerModal').addEventListener('click', e => {
     if (e.target.id === 'workerModal') closeWorkerModal();
 });
+document.getElementById('cloudModal') && document.getElementById('cloudModal').addEventListener('click', e => {
+    if (e.target.id === 'cloudModal') closeCloudSetup();
+});
+
+/* ========== ZAXIRA (login + barcha ma’lumot) ========== */
+function exportAllBackup() {
+    try {
+        const users = getUsers();
+        const payload = { v: 1, exportedAt: new Date().toISOString(), users: users, data: {}, cloudConfig: getCloudConfig() };
+        const owners = new Set();
+        Object.keys(users).forEach(u => {
+            const info = users[u] || {};
+            owners.add(info.role === 'viewer' ? (info.watch || u) : u);
+        });
+        if (typeof dataOwner !== 'undefined' && dataOwner) owners.add(dataOwner);
+        owners.forEach(owner => {
+            const pack = {};
+            ['chorva','docs','yem','payroll'].forEach(k => {
+                const key = 'ferma_' + (k === 'chorva' ? 'chorva_' : k === 'docs' ? 'docs_' : k === 'yem' ? 'yem_' : 'payroll_') + owner;
+                const raw = localStorage.getItem(key);
+                if (raw != null) pack[k] = raw;
+                const used = localStorage.getItem(key + '_used');
+                if (used != null) pack[k + '_used'] = used;
+            });
+            // also legacy-style keys used by app
+            const map = {
+                chorva: 'ferma_chorva_' + owner,
+                docs: 'ferma_docs_' + owner,
+                yem: 'ferma_yem_' + owner,
+                payroll: 'ferma_payroll_' + owner
+            };
+            Object.keys(map).forEach(k => {
+                const raw = localStorage.getItem(map[k]);
+                if (raw != null) pack[k] = raw;
+                const used = localStorage.getItem(map[k] + '_used');
+                if (used != null) pack[k + '_used'] = used;
+            });
+            payload.data[owner] = pack;
+        });
+        const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'ideal-ferma-zaxira_' + new Date().toISOString().slice(0, 10) + '.json';
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+        toast('Zaxira saqlandi');
+    } catch (e) { alert('Saqlanmadi: ' + (e.message || e)); }
+}
+function importAllBackup(ev) {
+    const file = ev.target && ev.target.files && ev.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+        try {
+            const payload = JSON.parse(reader.result);
+            if (!payload || !payload.users || typeof payload.users !== 'object') {
+                alert('Noto‘g‘ri zaxira fayli'); return;
+            }
+            if (!confirm('Zaxirani yuklash: login/parol + chorva/oylik/yem/hujjatlar.\nDavom?')) {
+                ev.target.value = ''; return;
+            }
+            const existing = getUsers();
+            saveUsers({ ...existing, ...payload.users });
+            if (payload.cloudConfig && payload.cloudConfig.apiKey) {
+                localStorage.setItem(CLOUD_CFG_KEY, JSON.stringify(payload.cloudConfig));
+                try { if (firebase.apps.length) firebase.app().delete(); } catch(_){}
+                initCloud();
+            }
+            const data = payload.data || {};
+            Object.keys(data).forEach(owner => {
+                const pack = data[owner] || {};
+                const map = {
+                    chorva: 'ferma_chorva_' + owner,
+                    docs: 'ferma_docs_' + owner,
+                    yem: 'ferma_yem_' + owner,
+                    payroll: 'ferma_payroll_' + owner
+                };
+                Object.keys(map).forEach(k => {
+                    if (pack[k] != null) localStorage.setItem(map[k], pack[k]);
+                    if (pack[k + '_used'] != null) localStorage.setItem(map[k] + '_used', pack[k + '_used']);
+                });
+            });
+            toast('Yuklandi — endi login/parol bilan kiring');
+            alert('Tayyor! Endi o‘sha login va parol bilan kiring.');
+        } catch (e) { alert('Xato: ' + (e.message || e)); }
+        ev.target.value = '';
+    };
+    reader.onerror = () => { alert('Fayl ochilmadi'); ev.target.value = ''; };
+    reader.readAsText(file);
+}
 
 /* Sessiya: login bo‘lmasa ochilmasin */
 (function initAuth() {
+    initCloud();
+
     const s = localStorage.getItem(SESSION_KEY);
     const users = getUsers();
     if (s && users[s] && !users[s].blocked) {
