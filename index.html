@@ -1,14 +1,20 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <link rel="shortcut icon" href="2_Oltin_halqali.png" type="image/x-icon">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1">
     <meta name="theme-color" content="#0c1117">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Ideal Ferma — Chorva va Hujjatlar</title>
+    <meta name="apple-mobile-web-app-title" content="Ideal Ferma">
+    <meta name="application-name" content="Ideal Ferma">
+    <meta name="description" content="Chorva, oylik, yem va hujjatlar — Ideal Ferma">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="192x192" href="2_Oltin_halqali.png">
+    <link rel="apple-touch-icon" href="2_Oltin_halqali.png">
+    <link rel="shortcut icon" href="2_Oltin_halqali.png">
+    <title>Ideal Ferma</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -295,6 +301,20 @@
         }
     </style></head>
 <body class="antialiased">
+<!-- PWA o‘rnatish banner -->
+<div id="pwaInstallBar" class="hidden fixed top-0 left-0 right-0 z-[80] bg-emerald-700 text-white px-3 py-2.5 flex items-center justify-between gap-2 shadow-lg" style="padding-top: max(10px, env(safe-area-inset-top));">
+    <div class="text-xs sm:text-sm font-semibold leading-snug">📱 Ideal Ferma — asosiy ekranga o‘rnating, bitta bosishda ochiladi</div>
+    <div class="flex gap-2 shrink-0">
+        <button type="button" id="pwaInstallBtn" class="bg-white text-emerald-800 font-bold text-xs px-3 py-2 rounded-lg">O‘rnatish</button>
+        <button type="button" id="pwaInstallClose" class="text-white/80 text-lg px-1" aria-label="Yopish">&times;</button>
+    </div>
+</div>
+<div id="pwaIosHint" class="hidden fixed bottom-4 left-3 right-3 z-[80] glass rounded-2xl p-4 border border-white/15 shadow-2xl" style="bottom: calc(16px + env(safe-area-inset-bottom));">
+    <div class="text-sm font-bold text-white mb-1">iPhone da o‘rnatish</div>
+    <p class="text-xs text-slate-300 leading-relaxed">Safari da <b class="text-white">Ulashish</b> (□↑) → <b class="text-white">«Asosiy ekranga qo‘shish»</b> ni bosing.</p>
+    <button type="button" id="pwaIosClose" class="mt-3 w-full btn-g py-2 text-sm">Tushundim</button>
+</div>
+
 
 <!-- LOGIN -->
 <div id="screen-login" class="min-h-screen flex items-center justify-center p-4">
@@ -351,7 +371,7 @@
                 <input id="regWatch" class="w-full glass rounded-xl px-4 py-3.5 text-base text-white border border-white/10" placeholder="ali">
             </div>
             <div>
-                <label class="block text-sm font-semibold text-slate-300 mb-1.5">Parol * (min 4, bulut uchun 6+)</label>
+                <label class="block text-sm font-semibold text-slate-300 mb-1.5">Parol * (min 6)</label>
                 <input id="regPass" type="password" required minlength="4" class="w-full glass rounded-xl px-4 py-3.5 text-base text-white border border-white/10">
             </div>
             <div>
@@ -1018,6 +1038,14 @@ async function cloudUpsertUser(login, pass, profile) {
     };
     await fbDb.ref('users/' + loginKey).set(payload);
     // tahrirlovchi jamoasiga bog‘lash
+    if (payload.role === 'editor') {
+        await fbDb.ref('editors/' + loginKey + '/meta').set({
+            name: payload.name,
+            role: 'editor',
+            created: payload.created,
+            lastLogin: payload.lastLogin
+        });
+    }
     if (payload.role === 'viewer' && payload.watch) {
         await fbDb.ref('editors/' + payload.watch + '/viewers/' + loginKey).set({
             name: payload.name,
@@ -1027,6 +1055,28 @@ async function cloudUpsertUser(login, pass, profile) {
             created: payload.created
         });
     }
+}
+async function cloudEditorExists(login) {
+    if (!cloudReady || !login) return false;
+    try {
+        const key = String(login).toLowerCase();
+        const snap = await fbDb.ref('users/' + key).once('value');
+        const u = snap.val();
+        if (u && u.role === 'editor') return true;
+        const meta = await fbDb.ref('editors/' + key + '/meta').once('value');
+        const m = meta.val();
+        return !!(m && (m.role === 'editor' || m.name));
+    } catch (e) {
+        console.warn(e);
+        return false;
+    }
+}
+async function cloudUserExists(login) {
+    if (!cloudReady || !login) return false;
+    try {
+        const snap = await fbDb.ref('users/' + String(login).toLowerCase()).once('value');
+        return !!snap.val();
+    } catch (e) { return false; }
 }
 async function cloudLogin(login, pass) {
     if (!cloudReady) return null;
@@ -1174,39 +1224,68 @@ function doRegister(e) {
     const pass = document.getElementById('regPass').value;
     const pass2 = document.getElementById('regPass2').value;
     const err = document.getElementById('regErr');
-    if (pass.length < 4) { err.textContent = 'Parol kamida 4 belgi'; err.classList.remove('hidden'); return false; }
+    err.classList.add('hidden');
+    if (pass.length < 6) { err.textContent = 'Parol kamida 6 belgi (boshqa qurilmalar uchun)'; err.classList.remove('hidden'); return false; }
     if (pass !== pass2) { err.textContent = 'Parollar mos emas'; err.classList.remove('hidden'); return false; }
     if (!/^[a-z0-9._-]{2,30}$/i.test(user)) { err.textContent = 'Login noto‘g‘ri'; err.classList.remove('hidden'); return false; }
-    const users = getUsers();
-    if (users[user]) { err.textContent = 'Login band'; err.classList.remove('hidden'); return false; }
-    if (role === 'viewer') {
-        if (!watch) { err.textContent = 'Tahrirlovchi loginini yozing'; err.classList.remove('hidden'); return false; }
-        if (!users[watch] || users[watch].role !== 'editor') {
-            err.textContent = 'Bunday tahrirlovchi yo‘q'; err.classList.remove('hidden'); return false;
-        }
+    if (role === 'viewer' && !watch) {
+        err.textContent = 'Tahrirlovchi loginini yozing'; err.classList.remove('hidden'); return false;
     }
-    const profile = { pass: hash(pass), name, role, watch: role === 'viewer' ? watch : user, created: Date.now(), lastLogin: Date.now(), loginCount: 1, blocked: false };
-    const finish = async () => {
-        users[user] = profile;
-        saveUsers(users);
-        currentUser = user; currentRole = role; dataOwner = role === 'viewer' ? watch : user;
-        localStorage.setItem(SESSION_KEY, user);
-        if (role === 'editor') {
-            if (!localStorage.getItem(chorvaKey())) localStorage.setItem(chorvaKey(), '[]');
-            if (!localStorage.getItem(docsKey())) localStorage.setItem(docsKey(), '[]');
-        }
-        if (cloudReady) {
-            try {
-                await cloudUpsertUser(user, pass, profile);
-                scheduleCloudPush();
-            } catch (e) {
-                alert('Bulut: ' + (e.message || e) + '\nLekin shu qurilmada akkaunt yaratildi.');
+    if (!cloudReady) {
+        err.textContent = 'Bulut ulanmagan. Sahifani yangilang yoki «Bulutni sozlash» ni bosing.';
+        err.classList.remove('hidden');
+        return false;
+    }
+
+    (async () => {
+        try {
+            const users = getUsers();
+            if (users[user]) {
+                err.textContent = 'Login band (shu qurilmada)'; err.classList.remove('hidden'); return;
             }
+            if (await cloudUserExists(user)) {
+                err.textContent = 'Login band (bulutda). Boshqa login tanlang yoki Kirish qiling.';
+                err.classList.remove('hidden'); return;
+            }
+            if (role === 'viewer') {
+                const localEditor = users[watch] && users[watch].role === 'editor';
+                const remoteEditor = await cloudEditorExists(watch);
+                if (!localEditor && !remoteEditor) {
+                    err.textContent = 'Bunday tahrirlovchi yo‘q. Loginni to‘g‘ri yozing. Tahrirlovchi avval shu saytda ro‘yxatdan o‘tgan bo‘lishi kerak.';
+                    err.classList.remove('hidden'); return;
+                }
+            }
+            const profile = {
+                pass: hash(pass), name, role,
+                watch: role === 'viewer' ? watch : user,
+                created: Date.now(), lastLogin: Date.now(), loginCount: 1, blocked: false
+            };
+            await cloudUpsertUser(user, pass, profile);
+            users[user] = profile;
+            saveUsers(users);
+            currentUser = user;
+            currentRole = role;
+            dataOwner = role === 'viewer' ? watch : user;
+            localStorage.setItem(SESSION_KEY, user);
+            if (role === 'editor') {
+                if (!localStorage.getItem(chorvaKey())) localStorage.setItem(chorvaKey(), '[]');
+                if (!localStorage.getItem(docsKey())) localStorage.setItem(docsKey(), '[]');
+                scheduleCloudPush();
+            } else {
+                try { await cloudPullFarm(dataOwner); } catch (_) {}
+            }
+            await enterApp();
+            toast(role === 'editor' ? 'Tahrirlovchi yaratildi (bulut)' : 'Kuzatuvchi yaratildi (bulut)');
+        } catch (e) {
+            console.error(e);
+            let msg = e.message || String(e);
+            if (e.code === 'auth/email-already-in-use') msg = 'Login band (Firebase)';
+            if (e.code === 'auth/weak-password') msg = 'Parol kamida 6 belgi';
+            if (e.code === 'auth/network-request-failed') msg = 'Internet yo‘q yoki Firebase ga ulanmadi';
+            err.textContent = 'Xato: ' + msg;
+            err.classList.remove('hidden');
         }
-        await enterApp();
-        toast(role === 'editor' ? 'Tahrirlovchi yaratildi' : 'Kuzatuvchi yaratildi');
-    };
-    finish();
+    })();
     return false;
 }
 function doLogin(e) {
@@ -1242,31 +1321,38 @@ function doLogin(e) {
     };
 
     (async () => {
-        if (localOk) {
-            await enter(users[user]);
-            // ham bulutga sinxron
-            if (cloudReady) {
-                try { await cloudUpsertUser(user, pass, users[user]); } catch (_) {}
-            }
-            return;
-        }
+        // Avval bulut — boshqa qurilmalarda ishlashi uchun
         if (cloudReady) {
             try {
                 const remote = await cloudLogin(user, pass);
-                if (!remote) {
-                    err.textContent = 'Login yoki parol noto‘g‘ri'; err.classList.remove('hidden'); return;
+                if (remote) {
+                    await enter(remote);
+                    return;
                 }
-                await enter(remote);
-                return;
             } catch (e) {
+                // agar local to‘g‘ri bo‘lsa, local bilan kirishga ruxsat
+                if (localOk) {
+                    await enter(users[user]);
+                    try { await cloudUpsertUser(user, pass, users[user]); } catch (_) {}
+                    return;
+                }
                 err.textContent = (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential')
-                    ? 'Login yoki parol noto‘g‘ri (bulut)'
+                    ? 'Login yoki parol noto‘g‘ri'
                     : ('Xato: ' + (e.message || e));
                 err.classList.remove('hidden');
                 return;
             }
         }
-        err.textContent = 'Login yoki parol noto‘g‘ri';
+        if (localOk) {
+            await enter(users[user]);
+            if (cloudReady) {
+                try { await cloudUpsertUser(user, pass, users[user]); } catch (_) {}
+            }
+            return;
+        }
+        err.textContent = cloudReady
+            ? 'Login yoki parol noto‘g‘ri'
+            : 'Login topilmadi. Bulut ulanganini tekshiring yoki shu qurilmada ro‘yxatdan o‘ting.';
         err.classList.remove('hidden');
     })();
     return false;
@@ -2696,6 +2782,73 @@ function importAllBackup(ev) {
     };
     reader.onerror = () => { alert('Fayl ochilmadi'); ev.target.value = ''; };
     reader.readAsText(file);
+}
+
+/* ========== PWA (telefonda app kabi) ========== */
+let deferredPwaPrompt = null;
+function isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches
+        || window.navigator.standalone === true;
+}
+function showPwaBar() {
+    if (isStandalone()) return;
+    if (localStorage.getItem('ferma_pwa_hide') === '1') return;
+    const bar = document.getElementById('pwaInstallBar');
+    if (bar) bar.classList.remove('hidden');
+}
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPwaPrompt = e;
+    showPwaBar();
+});
+window.addEventListener('appinstalled', () => {
+    deferredPwaPrompt = null;
+    const bar = document.getElementById('pwaInstallBar');
+    if (bar) bar.classList.add('hidden');
+    localStorage.setItem('ferma_pwa_hide', '1');
+    toast && toast('Ilova o‘rnatildi');
+});
+document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('pwaInstallBtn');
+    const close = document.getElementById('pwaInstallClose');
+    const ios = document.getElementById('pwaIosHint');
+    const iosClose = document.getElementById('pwaIosClose');
+    if (btn) btn.onclick = async () => {
+        if (deferredPwaPrompt) {
+            deferredPwaPrompt.prompt();
+            const { outcome } = await deferredPwaPrompt.userChoice;
+            deferredPwaPrompt = null;
+            if (outcome === 'accepted') localStorage.setItem('ferma_pwa_hide', '1');
+            document.getElementById('pwaInstallBar')?.classList.add('hidden');
+        } else {
+            // iOS yoki brauzer prompt bermasa
+            const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+            if (isIOS && ios) {
+                document.getElementById('pwaInstallBar')?.classList.add('hidden');
+                ios.classList.remove('hidden');
+            } else {
+                alert('Chrome menyusidan: «Asosiy ekranga qo‘shish» yoki «Ilovani o‘rnatish» ni tanlang.');
+            }
+        }
+    };
+    if (close) close.onclick = () => {
+        document.getElementById('pwaInstallBar')?.classList.add('hidden');
+        localStorage.setItem('ferma_pwa_hide', '1');
+    };
+    if (iosClose) iosClose.onclick = () => {
+        ios?.classList.add('hidden');
+        localStorage.setItem('ferma_pwa_hide', '1');
+    };
+    // Android ba’zan prompt kechikadi — bar ko‘rsatamiz
+    setTimeout(() => {
+        if (!deferredPwaPrompt && /android/i.test(navigator.userAgent)) showPwaBar();
+        if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !isStandalone()) showPwaBar();
+    }, 1500);
+});
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch((e) => console.warn('SW', e));
+    });
 }
 
 /* Sessiya: login bo‘lmasa ochilmasin */
