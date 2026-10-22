@@ -2870,50 +2870,78 @@ document.addEventListener('DOMContentLoaded', () => {
         if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !isStandalone()) showPwaBar();
     }, 1500);
 });
-/* PWA versiya — kod/yangilanish avtomatik */
-const APP_VERSION = '1.0.5';
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').then((reg) => {
-            // har ochilganda yangilanishni tekshir
-            try { reg.update(); } catch (_) {}
-            setInterval(() => { try { reg.update(); } catch (_) {} }, 60 * 60 * 1000);
-            reg.addEventListener('updatefound', () => {
-                const nw = reg.installing;
-                if (!nw) return;
-                nw.addEventListener('statechange', () => {
-                    if (nw.state === 'installed' && navigator.serviceWorker.controller) {
-                        showAppUpdateBar();
-                    }
-                });
-            });
-        }).catch((e) => console.warn('SW', e));
-        // boshqa tab yangilansa
-        let refreshing = false;
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (refreshing) return;
-            refreshing = true;
-            location.reload();
-        });
-    });
-}
-function showAppUpdateBar() {
+/* PWA versiya — majburiy tekshiruv */
+const APP_VERSION = '1.0.6';
+
+function showAppUpdateBar(remoteVer) {
     if (document.getElementById('appUpdateBar')) return;
     const bar = document.createElement('div');
     bar.id = 'appUpdateBar';
     bar.style.cssText = 'position:fixed;bottom:16px;left:12px;right:12px;z-index:90;background:#166534;color:#fff;padding:12px 14px;border-radius:14px;display:flex;gap:10px;align-items:center;justify-content:space-between;box-shadow:0 8px 30px rgba(0,0,0,.4);font-size:13px;font-weight:600';
-    bar.innerHTML = '<span>🆕 Yangi versiya tayyor</span><button type="button" id="appUpdateBtn" style="background:#fff;color:#166534;border:0;border-radius:10px;padding:8px 14px;font-weight:800;cursor:pointer">Yangilash</button>';
+    bar.innerHTML = '<span>🆕 Yangi versiya' + (remoteVer ? ' (' + remoteVer + ')' : '') + '</span><button type="button" id="appUpdateBtn" style="background:#fff;color:#166534;border:0;border-radius:10px;padding:8px 14px;font-weight:800;cursor:pointer">Yangilash</button>';
     document.body.appendChild(bar);
-    document.getElementById('appUpdateBtn').onclick = () => {
-        if (navigator.serviceWorker.controller) {
-            navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
-        }
-        // agar controller yo‘q bo‘lsa ham
-        navigator.serviceWorker.getRegistration().then((r) => {
-            if (r && r.waiting) r.waiting.postMessage({ type: 'SKIP_WAITING' });
-            else location.reload();
-        });
+    document.getElementById('appUpdateBtn').onclick = async () => {
+        try {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            for (const r of regs) {
+                if (r.waiting) r.waiting.postMessage({ type: 'SKIP_WAITING' });
+                if (r.active) r.active.postMessage({ type: 'CLEAR_CACHE' });
+            }
+            const keys = await caches.keys();
+            await Promise.all(keys.map((k) => caches.delete(k)));
+        } catch (_) {}
+        // cache bust reload
+        const u = new URL(location.href);
+        u.searchParams.set('_v', Date.now());
+        location.replace(u.toString());
     };
+}
+
+async function checkAppVersion() {
+    try {
+        const res = await fetch('./version.json?t=' + Date.now(), { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.version && String(data.version) !== String(APP_VERSION)) {
+            showAppUpdateBar(data.version);
+        }
+    } catch (_) {}
+}
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', async () => {
+        try {
+            const reg = await navigator.serviceWorker.register('./sw.js?v=' + APP_VERSION);
+            try { await reg.update(); } catch (_) {}
+            // yangi SW topilsa
+            reg.addEventListener('updatefound', () => {
+                const nw = reg.installing;
+                if (!nw) return;
+                nw.addEventListener('statechange', () => {
+                    if (nw.state === 'installed') showAppUpdateBar();
+                });
+            });
+            if (reg.waiting) showAppUpdateBar();
+        } catch (e) { console.warn('SW', e); }
+
+        // darhol versiyani tekshir
+        checkAppVersion();
+        // har 2 daqiqada
+        setInterval(checkAppVersion, 120000);
+    });
+
+    // ilova qayta ochilganda / ekranga qaytganda
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') checkAppVersion();
+    });
+    window.addEventListener('focus', () => checkAppVersion());
+
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+        refreshing = true;
+        location.reload();
+    });
 }
 
 /* Sessiya: login bo‘lmasa ochilmasin */
