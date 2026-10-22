@@ -1,5 +1,5 @@
 /* Ideal Ferma SW v6 — tarmoq ustuvor, avto-yangilanish */
-const CACHE = 'ideal-ferma-v6';
+const CACHE = 'ideal-ferma-v7';
 
 self.addEventListener('install', (e) => {
   // kutmasdan darhol faol bo‘lish

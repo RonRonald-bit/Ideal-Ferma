@@ -324,6 +324,7 @@
             <div class="inline-flex w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-700 items-center justify-center text-3xl mb-4">🌾</div>
             <h1 class="text-2xl font-extrabold text-white">Ideal Ferma</h1>
             <p class="text-slate-400 text-sm mt-1">Tahrirlovchi yozadi · kuzatuvchi ko‘radi</p>
+            <p id="appVerLogin" class="text-slate-500 text-xs mt-2">v1.0.7</p>
         </div>
         <div class="flex gap-2 mb-6">
             <button type="button" id="tab-login" onclick="setAuthTab('login')" class="flex-1 py-2.5 rounded-xl text-sm font-bold bg-green-500/20 text-green-400 border border-green-500/30">Kirish</button>
@@ -2871,7 +2872,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1500);
 });
 /* PWA versiya — majburiy tekshiruv */
-const APP_VERSION = '1.0.6';
+const APP_VERSION = '1.0.7';
+function syncVersionLabels() {
+    const el = document.getElementById('appVerLogin');
+    if (el) el.textContent = 'v' + APP_VERSION;
+    const h = document.getElementById('appVerHeader');
+    if (h) h.textContent = 'v' + APP_VERSION;
+}
+document.addEventListener('DOMContentLoaded', syncVersionLabels);
+
 
 function showAppUpdateBar(remoteVer) {
     if (document.getElementById('appUpdateBar')) return;
