@@ -31,7 +31,6 @@ self.addEventListener('fetch', (e) => {
     url.hostname.includes('fonts.')
   ) return;
 
-  // version.json, sw.js — hech qachon cache yo‘q
   if (url.pathname.endsWith('version.json') || url.pathname.endsWith('sw.js')) {
     e.respondWith(fetch(req, { cache: 'no-store' }));
     return;
