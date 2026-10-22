@@ -2818,7 +2818,7 @@ function isStandalone() {
 }
 function showPwaBar() {
     if (isStandalone()) return;
-    if (localStorage.getItem('ferma_pwa_hide') === '1') return;
+    if (localStorage.getItem('ferma_pwa_hide') === '1.0.8') return;
     const bar = document.getElementById('pwaInstallBar');
     if (bar) bar.classList.remove('hidden');
 }
@@ -2831,7 +2831,7 @@ window.addEventListener('appinstalled', () => {
     deferredPwaPrompt = null;
     const bar = document.getElementById('pwaInstallBar');
     if (bar) bar.classList.add('hidden');
-    localStorage.setItem('ferma_pwa_hide', '1');
+    localStorage.setItem('ferma_pwa_hide', '1.0.8');
     toast && toast('Ilova o‘rnatildi');
 });
 document.addEventListener('DOMContentLoaded', () => {
@@ -2844,7 +2844,7 @@ document.addEventListener('DOMContentLoaded', () => {
             deferredPwaPrompt.prompt();
             const { outcome } = await deferredPwaPrompt.userChoice;
             deferredPwaPrompt = null;
-            if (outcome === 'accepted') localStorage.setItem('ferma_pwa_hide', '1');
+            if (outcome === 'accepted') localStorage.setItem('ferma_pwa_hide', '1.0.8');
             document.getElementById('pwaInstallBar')?.classList.add('hidden');
         } else {
             // iOS yoki brauzer prompt bermasa
@@ -2859,11 +2859,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     if (close) close.onclick = () => {
         document.getElementById('pwaInstallBar')?.classList.add('hidden');
-        localStorage.setItem('ferma_pwa_hide', '1');
+        localStorage.setItem('ferma_pwa_hide', '1.0.8');
     };
     if (iosClose) iosClose.onclick = () => {
         ios?.classList.add('hidden');
-        localStorage.setItem('ferma_pwa_hide', '1');
+        localStorage.setItem('ferma_pwa_hide', '1.0.8');
     };
     // Android ba’zan prompt kechikadi — bar ko‘rsatamiz
     setTimeout(() => {
