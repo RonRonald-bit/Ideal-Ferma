@@ -1,13 +1,13 @@
 {
   "name": "Ideal Ferma",
-  "short_name": "Ideal Ferma",
+  "short_name": "Ferma",
   "description": "Chorva, oylik, yem va hujjatlar boshqaruvi",
-  "start_url": "./",
+  "start_url": "./?v=1.0.8",
   "scope": "./",
   "id": "/Ideal-Ferma/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#f8f6f0",
+  "background_color": "#0c1117",
   "theme_color": "#0c1117",
   "lang": "uz",
   "icons": [
